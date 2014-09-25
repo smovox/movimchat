@@ -2,13 +2,12 @@
 
 namespace modl;
 
-class SubscriptionDAO extends SQL {
+class SubscriptionDAO extends ModlSQL {
     function set(Subscription $s) {
         $this->_sql = '
             update subscription
             set subscription = :subscription,
                 timestamp = :timestamp,
-                tags = :tags,
                 subid = :subid
             where jid = :jid
                 and server = :server
@@ -18,11 +17,10 @@ class SubscriptionDAO extends SQL {
             'Subscription', 
             array(                
                 'subscription' => $s->subscription,
-                'timestamp' => date(DATE_ISO8601),
+                'timestamp' => $s->timestamp,
                 'jid'   => $s->jid,
                 'server'=> $s->server,
                 'node'  => $s->node,
-                'tags'  => $s->tags,
                 'subid' => $s->subid
             )
         );
@@ -32,18 +30,17 @@ class SubscriptionDAO extends SQL {
         if(!$this->_effective) {
             $this->_sql = '
                 insert into subscription
-                (jid, server, node, subscription, subid, tags, timestamp)
-                values (:jid, :server, :node, :subscription, :subid, :tags, :timestamp)';
+                (jid, server, node, subscription, subid, timestamp)
+                values (:jid, :server, :node, :subscription, :subid, :timestamp)';
             
             $this->prepare(
                 'Subscription', 
                 array(
                     'subscription' => $s->subscription,
-                    'timestamp' => date(DATE_ISO8601),
+                    'timestamp' => $s->timestamp,
                     'jid'   => $s->jid,
                     'server'=> $s->server,
-                    'node'  => $s->node,
-                    'tags'  => $s->tags,
+                    'node'  =>$s->node,
                     'subid' => $s->subid
                 )
             );
@@ -88,24 +85,7 @@ class SubscriptionDAO extends SQL {
                 subscription.server, 
                 subscription.node, 
                 subscription.jid, 
-                subscription, item.name
-            order by 
-                subscription.server';
-        
-        $this->prepare(
-            'Subscription', 
-            array(
-                'jid' => $this->_user
-            )
-        );
-        
-        return $this->run('Subscription');
-    }
-
-    function delete() {
-        $this->_sql = '
-            delete from subscription
-            where jid = :jid';
+                subscription, item.name';
         
         $this->prepare(
             'Subscription', 

@@ -16,31 +16,37 @@
  * See COPYING for licensing information.
  */
 
-use Rain\Tpl;
-
 class WidgetBase
 {
     protected $js = array(); /*< Contains javascripts. */
     protected $css = array(); /*< Contains CSS files. */
+    protected $external; /*< Boolean: TRUE if not a system widget. */
     protected $ajax;     /*< Contains ajax client code. */
     protected $tpl;
     protected $user;
     protected $name;
-    protected $pure;    // To render the widget without the container
-    protected $translations = array(); // Set translations in the controller
     public $events;
+    
+    protected $cached;
 
     /**
      * Initialises Widget stuff.
+     * @param external is optional, true if the widget is external (an add-on) to Movim.
      */
-    function __construct()
+    function __construct($external = true)
     {
         // Put default widget init here.
-        $this->ajax = AjaxController::getInstance();
+        $this->external = $external;
+
+        $this->ajax = ControllerAjax::getInstance();
         
         $this->user = new User;
 
-        // Generating Ajax calls.
+        $db = modl\Modl::getInstance();
+        $u = new User();
+        $db->setUser($u->getLogin());
+
+        // Generating ajax calls.
         $refl = new ReflectionClass(get_class($this));
         $meths = $refl->getMethods();
 
@@ -55,70 +61,39 @@ class WidgetBase
                 $this->ajax->defun(get_class($this), $method->name, $params);
             }
         }
-
-        $config = array(
-            'tpl_dir'       => $this->respath('', true),
-            'cache_dir'     => CACHE_PATH,
-            'tpl_ext'       => 'tpl',
-            'auto_escape'   => false
-        );
         
-
-        if(file_exists($this->respath('locales.ini', true))) {
-            $this->translations = parse_ini_file($this->respath('locales.ini', true));
-        }
-
         // We load the template engine
-        $this->view = new Tpl;
-        $this->view->objectConfigure($config);
+        $this->view = new RainTPL;
+        $this->view->configure('tpl_dir',      $this->respath('', true));
+        $this->view->configure('cache_dir',    CACHE_PATH);
+        $this->view->configure('tpl_ext',      'tpl');
 
         $this->view->assign('c', $this);
                 
         $this->name = get_class($this);
-        
-        $this->pure = false;
 
-        $this->load();
+        $this->WidgetLoad();
     }
     
     function t() {
         return call_user_func_array('t',func_get_args());
     }
     
-    function __() {
-        $args = func_get_args();
-        if(array_key_exists($args[0], $this->translations)) {
-            $args[0] = $this->translations[$args[0]];
-            return call_user_func_array(array(&$this, 't'), $args);
-        } 
-        
-        global $translationshash;
-        
-        if(array_key_exists($args[0], $translationshash)) {
-            return call_user_func_array('__', $args);
-        }
-        
-        return $args[0];
-    }
-    
     function route() {
         return call_user_func_array('Route::urlize',func_get_args());
     }
 
-    function load() {}
+    function WidgetLoad()
+    {
+    }
 
     /**
      * Generates the widget's HTML code.
      */
     function build()
     {
-        return $this->draw();
+        echo $this->draw();
     }
-
-    /*
-     * @desc Preload some sourcecode for the draw method
-     */
-    function display() {}
     
     /**
      * Return the template's HTML code 
@@ -127,20 +102,15 @@ class WidgetBase
      */
     function draw()
     {
-        $this->display();
         return trim($this->view->draw(strtolower($this->name), true));
     }
     
     protected function tpl() {
-        $config = array(
-            'tpl_dir'       => APP_PATH.'widgets/'.$this->name.'/',
-            'cache_dir'     => CACHE_PATH,
-            'tpl_ext'       => 'tpl',
-            'auto_escape'   => false
-        );
-
-        $view = new Tpl;
-        $view->objectConfigure($config);
+        $view = new RainTPL;
+                
+        $view->configure('tpl_dir', APP_PATH.'widgets/'.$this->name.'/'); 
+        $view->configure('cache_dir',    CACHE_PATH);
+        $view->configure('tpl_ext',      'tpl'); 
         $view->assign('c', $this);
         
         return $view;
@@ -157,8 +127,12 @@ class WidgetBase
             $folder = get_class($this);
         else
             $folder = get_parent_class($this);
-
-        $path = 'app/widgets/' . $folder . '/' . $file;
+        
+        $path = '';
+        if(!$this->external) {
+            $path = 'app/';
+        }
+        $path .= 'app/widgets/' . $folder . '/' . $file;
 
         if($fspath) {
             $path = DOCUMENT_ROOT . '/'.$path;
@@ -211,7 +185,7 @@ class WidgetBase
     protected function makeCallAjax($params, $widget=false)
     {
         if(!$widget) {
-            $widget = $this->name;
+            $widget = get_class($this);
         }
 
         $funcname = array_shift($params);
@@ -243,14 +217,6 @@ class WidgetBase
     {
         $this->css[] = $this->respath($filename);
     }
-    
-    /**
-     * returns the list of javascript files to be loaded for the widget.
-     */
-    public function loadcss()
-    {
-        return $this->css;
-    }
 
     /**
      * Registers an event handler.
@@ -258,7 +224,7 @@ class WidgetBase
     protected function registerEvent($type, $function)
     {
         if(!is_array($this->events)
-        || !array_key_exists($type, $this->events)) {
+           || !array_key_exists($type, $this->events)) {
             $this->events[$type] = array($function);
         } else {
             $this->events[$type][] = $function;
@@ -279,6 +245,23 @@ class WidgetBase
 
             return $returns;
         }
+    }
+    
+    public function isEvents($proto)
+    {
+        if(is_array($this->events) && 
+            array_key_exists($proto['type'], $this->events) &&
+            $this->cached == true) {
+            return true;
+        }
+    }
+
+    /**
+     * returns the list of javascript files to be loaded for the widget.
+     */
+    public function loadcss()
+    {
+        return $this->css;
     }
 }
 

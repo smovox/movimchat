@@ -1,8 +1,8 @@
 <?php
 
-namespace Modl;
+namespace modl;
 
-class PresenceDAO extends SQL {
+class PresenceDAO extends ModlSQL {
     function __construct() {
         parent::__construct();
     }
@@ -22,8 +22,7 @@ class PresenceDAO extends SQL {
                 node = :node,
                 ver = :ver,
                 delay = :delay,
-                last = :last,
-                publickey = :publickey
+                last = :last
             where id = :id';
         
         $this->prepare(
@@ -36,7 +35,6 @@ class PresenceDAO extends SQL {
                 'ver'       => $presence->ver,
                 'delay'     => $presence->delay,
                 'last'      => $presence->last,
-                'publickey' => $presence->publickey,
                 'id'        => $id
             )
         );
@@ -46,7 +44,7 @@ class PresenceDAO extends SQL {
         if(!$this->_effective) {
             $this->_sql = '
                 insert into presence
-                (id,session, jid, ressource, value, priority, status, node, ver, delay,last,publickey)
+                (id,session, jid, ressource, value, priority, status, node, ver, delay,last)
                 values(
                     :id,
                     :session,
@@ -58,8 +56,7 @@ class PresenceDAO extends SQL {
                     :node,
                     :ver,
                     :delay,
-                    :last,
-                    :publickey)';
+                    :last)';
             
             $this->prepare(
                 'Presence', 
@@ -74,8 +71,7 @@ class PresenceDAO extends SQL {
                     'node'      => $presence->node,
                     'ver'       => $presence->ver,
                     'delay'     => $presence->delay,
-                    'last'      => $presence->last,
-                    'publickey'      => $presence->publickey
+                    'last'      => $presence->last
                 )
             );
             

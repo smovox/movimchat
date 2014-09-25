@@ -40,7 +40,7 @@ class RPC
 
             self::$funcalls[] = $funcall;
         } elseif(isset($args[0])) {
-            //\system\Logs\Logger::log('RPC cleaning system : '.$funcname.', '.$args[0].' cleared');
+            \system\Logs\Logger::log('RPC cleaning system : '.$funcname.', '.$args[0].' cleared');
         }
     }
 
@@ -92,14 +92,13 @@ class RPC
      */
     public function handle_json()
     {
-        $json = file_get_contents('php://input');
-        $request = json_decode($json);
-
         if(isset($_GET['do']) && $_GET['do'] == 'poll') {
-            \Moxl\API::ping();
-        } elseif((string)$request->widget == 'lazy') {
-            $l = new Lazy($request->params[0], $request->params[1]);
+            moxl\ping();
         } else {
+            $json = file_get_contents('php://input');
+
+            $request = json_decode($json);
+
             // Loading the widget.
             $widget_name = (string)$request->widget;
 
@@ -110,14 +109,14 @@ class RPC
             
 
             foreach($params as $p) {
-                if(is_object($p) && isset($p->container))
+                if(is_object($p) && $p->container)
                     array_push($result, (array)$p->container);
                 else
                     array_push($result, $p);
             }
 
             $widgets = WidgetWrapper::getInstance(false);
-            $widgets->runWidget($widget_name, (string)$request->func, $result);
+            $widgets->run_widget($widget_name, (string)$request->func, $result);
         }
     }
 }

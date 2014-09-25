@@ -1,57 +1,57 @@
 <div id="loginpage" class="fadeDown">
+
     {if="!BROWSER_COMP"}
         <div class="message warning">
-            {$c->__('error.too_old')}
-        </div>
+            {$c->t('Your web browser is too old to use with Movim.')}
+        </div> ';
     {else}
-        {if="isset($info) && $info != ''"}
+        {if="isset($conf.info) && $conf.info != ''"}
             <div class="message warning">
-                {$info}
+                {$conf.info}
             </div>
         {/if}
         <form
-            data-action="{$submit}"
-            name="login">
+            name="login"
+            id="connectform"
+            target="passwordiframe"
+            method="POST"
+            action="blank.php"
+            onkeypress="
+                if(event.keyCode == 13) {
+                    {$submit_event}
+                }"
+            >
             <div class="element">
                 <input type="email" name="login" id="login" autofocus required
-                    placeholder="{$c->__('form.username')}"/>
+                    placeholder="{$c->t('My address')}"/>
             </div>
             <div class="element">
                 <input type="password" name="pass" id="pass" required
-                    placeholder="{$c->__('form.password')}"/>
+                    placeholder="{$c->t("Password")}"/>
             </div>
-            <div class="element">
-                <input
-                    type="submit"
-                    data-loading="{$c->__('button.connecting')}"
-                    value="{$c->__('button.come_in')}"
-                    class="button color green"/> 
+            <div class="element login">
+                <a
+                    class="button color green icon yes"
+                    onclick="{$submit_event}"
+                    id="submit"
+                    name="submit">{$c->t("Come in!")}</a>
             </div>
+            
+            <input type="submit" id="submitb" name="submitb" value="submit" style="display: none;"/> 
+            
             <div class="clear"></div>
-
-            <div id="warning">{$warnings}</div>
-            <div class="clear"></div>
-
-            <p class="create">
-                <a class="button color transparent oppose" href="{$c->route('account')}">
-                    <i class="fa fa-user"></i> {$c->__('form.create_one')}
-                </a>
-                <span>{$c->__('form.no_account')}</span>
-            </p>
-
-            <div class="clear"></div>
-        
+            
             <ul id="loginhelp">
                 {if="$whitelist_display == true"}
                     <li id="whitelist">
-                        <p>{$c->__('whitelist.info')}</p>
+                        <p>This server accept only connection with xmpp accounts from these servers :</p>
                         <p style="font-weight:bold; text-align:center; margin:0.5em;">{$whitelist}</p>
-                        <p>{$c->__('whitelist.info2', '<a href="http://pod.movim.eu">', '</a>')}</p>
+                        <p>If you don\'t have such xmpp account, you can try <a href="http://pod.movim.eu">another public Movim</a> client.</p>
                     </li>
                 {else}
-                    <li id="jabber">{$c->__('account.jabber')}
+                    <li id="jabber">{$c->t('You can login using your favorite Jabber account')}
                         <a href="#" onclick="fillExample('demonstration@movim.eu', 'demonstration');">
-                            {$c->__('account.demo')}
+                            {$c->t('or with our demonstration account')}
                         </a>
                     </li>
                     <li id="gmail">
@@ -62,13 +62,25 @@
                     </li>
                 {/if}
             </ul>
+            
+            <iframe id="passwordiframe" name="passwordiframe" style="display: none;"></iframe>
+            
+            <div id="warning">{$warnings}</div>
+            <div class="infos">
+                    {$c->t('Population')} {$pop} • 
+                    {$c->t('No account yet ?')}
+                    <a href="{$c->route('account')}">
+                        {$c->t('Create one !')}
+                    </a>
+            </div>
+            <div class="clear"></div>
+
         </form>
     {/if}
 
     <div class="admin">
-        {$c->__('connected')} {$connected} • {$c->__('population')} {$pop} • 
         <a href="{$c->route('admin')}">
-            {$c->__('page.administration')}
+            {$c->t('Administration')}
         </a>
     </div>
 </div>

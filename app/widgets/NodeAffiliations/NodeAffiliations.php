@@ -18,23 +18,13 @@
  * See COPYING for licensing information.
  */
 
-use Moxl\Xec\Action\Pubsub\GetAffiliations;
-use Moxl\Xec\Action\Pubsub\SetAffiliations;
-
 class NodeAffiliations extends WidgetBase
 {
-    function load()
+
+    function WidgetLoad()
     {
         $this->registerEvent('pubsubaffiliations', 'onGroupMemberList');
         $this->registerEvent('pubsubaffiliationssubmited', 'onSubmit');
-    }
-    
-    function display() {
-        $this->view->assign('pepfilter', !filter_var($_GET['s'], FILTER_VALIDATE_EMAIL));
-        $this->view->assign('getaffiliations', 
-            $this->genCallAjax('ajaxGetGroupMemberList',
-                "'".$_GET['s']."'", 
-                "'".$_GET['n']."'"));
     }
     
     function prepareList($list) { //0:data 1:server 2:node
@@ -44,9 +34,7 @@ class NodeAffiliations extends WidgetBase
         foreach($list[0] as $item){ //0:jid 1:affiliation 2:subid 
             $html .= '
                 <div class="element">
-                    <label for="'.$item[0].'_'.$item[2].'">
-                        <a href="'.Route::urlize('friend', $item[0]).'">'.$item[0].'</a>
-                    </label>
+                    <label for="'.$item[0].'_'.$item[2].'"><a href="'.Route::urlize('friend', $item[0]).'">'.$item[0].'</a></label>
                     <div class="select">
                         <select name="'.$item[0].'_'.$item[2].'">';
                         foreach($affiliation as $status){
@@ -58,24 +46,21 @@ class NodeAffiliations extends WidgetBase
                 </div>';
         }
         
-        $ok = $this->genCallAjax(
-                'ajaxChangeAffiliation', 
-                "'".$list[1]."'", 
-                "'".$list[2]."'", 
-                "movim_parse_form('affiliationsManaging')");
+        $ok = $this->genCallAjax('ajaxChangeAffiliation', "'".$list[1]."'", "'".$list[2]."'", "movim_parse_form('affiliationsManaging')");
         $html .= '
             <hr />
             <br />
             <a 
-                class="button color green oppose" 
+                class="button color green icon yes" 
+                style="float: right;"
                 onclick="'.$ok.'">
-                <i class="fa fa-check"></i> '.__('button.validate').'
-            </a></form><div class="clear"></div>';
+                '.t('Validate').'
+            </a></form>';
         return $html;
     }
     
     function onSubmit($stanza) {
-        Notification::appendNotification($this->__('affiliations.saved'), 'success');
+        Notification::appendNotification(t('Affiliations saved'), 'success');
         RPC::commit();        
     }
     
@@ -86,14 +71,37 @@ class NodeAffiliations extends WidgetBase
     }
     
     function ajaxChangeAffiliation($server, $node, $data){
-        $r = new SetAffiliations;
+        $r = new moxl\PubsubSetAffiliations();
         $r->setNode($node)->setTo($server)->setData($data)
           ->request();
     }
     
     function ajaxGetGroupMemberList($server, $node){
-        $r = new GetAffiliations;
+        $r = new moxl\PubsubGetAffiliations();
         $r->setTo($server)->setNode($node)
         ->request();
     }
+    
+    function build()
+    {
+        // A little filter to hide the widget if we load a PEP node
+        if(!filter_var($_GET['s'], FILTER_VALIDATE_EMAIL)) {
+        ?>
+        <div class="tabelem" title="<?php echo t('Manage your members'); ?>" id="groupmemberlist">
+            <h1><?php echo t('Manage your members'); ?></h1>
+            <div class="posthead">
+                <a 
+                    class="button icon users color green" 
+                    onclick="<?php echo $this->genCallAjax('ajaxGetGroupMemberList', "'".$_GET['s']."'", "'".$_GET['n']."'"); ?> this.parentNode.style.display = 'none'">
+                        <?php echo t("Get the members");?>
+                </a>
+            </div>
+            
+            <div id="memberlist" class="paddedtop"></div>
+        </div>
+        <?php
+        }
+    }
 }
+
+?>

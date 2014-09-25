@@ -18,31 +18,21 @@
  * See COPYING for licensing information.
  */
 
-use Moxl\Xec\Action\Roster\UpdateItem;
-
 class ContactManage extends WidgetCommon
 {
-    function load() 
-    {
+    function WidgetLoad() {
         $this->registerEvent('rosterupdateditem', 'onRoster');
-    }
-    
-    function display()
-    {
-        $this->view->assign('ok', ($_GET['f'] != $this->user->getLogin()));
-        $this->view->assign('contact', $this->prepareContactManage($_GET['f']));
     }
 
     public function onRoster($jid)
     {
         $html = $this->prepareContactManage($jid);
-        Notification::appendNotification($this->__('contact.updated'));
+        Notification::appendNotification(t('Contact updated'));
         RPC::call('movim_fill', 'contactmanage', $html);
     }
     
-    public function ajaxContactManage($form) 
-    {
-        $rd = new UpdateItem;
+    public function ajaxContactManage($form) {
+        $rd = new \moxl\RosterUpdateItem();
         $rd->setTo(echapJid($form['jid']))
            ->setFrom($this->user->getLogin())
            ->setName(htmlspecialchars($form['alias']))
@@ -50,26 +40,17 @@ class ContactManage extends WidgetCommon
            ->request();
     }
     
-    private function prepareContactManage($jid) 
-    {
-        $rd = new \Modl\RosterLinkDAO();
+    private function prepareContactManage($jid) {
+        $rd = new \modl\RosterLinkDAO();
+        
         $groups = $rd->getGroups();
-        $rl     = $rd->get($jid);
-        
+        $rl = $rd->get($jid);
+                    
         $html = '';
-
-        if(isset($rl)) {
-            $form = $this->tpl();
-            $form->assign('submit', 
-                $this->genCallAjax(
-                    'ajaxContactManage', 
-                    "movim_parse_form('manage')"));
-            $form->assign('rl', $rl);
-            $form->assign('groups', $groups);
-            $html = $form->draw('_contact_manage_form', true);
         
-            /*
-            $submit = ;
+        if(isset($rl)) {
+        
+            $submit = $this->genCallAjax('ajaxContactManage', "movim_parse_form('manage')");
             
             $html .= '<h2>'.t('Manage').'</h2>';
             
@@ -77,11 +58,8 @@ class ContactManage extends WidgetCommon
                 <form name="manage">';
                 
             $ghtml = '';
-
-            if(is_array($groups)) {
-                foreach($groups as $g)
-                    $ghtml .= '<option value="'.$g.'"/>';
-            }
+            foreach($groups as $g)
+                $ghtml .= '<option value="'.$g.'"/>';
                 
             $html .= '
                     <input type="hidden" name="jid" value="'.$jid.'"/>
@@ -98,9 +76,23 @@ class ContactManage extends WidgetCommon
                     <a name="submit" class="button black icon yes" onclick="'.$submit.' this.style.display = \'none\';">'.t('Save').'</a>';
                 
             $html .= '
-                </form>';*/
+                </form>';
         }
         
         return $html;
-    }    
+    }
+    
+    function build() {
+        ?>
+        <div class="clear"></div>
+        
+        <div id="contactmanage">
+        <?php
+        if($_GET['f'] != $this->user->getLogin())
+            echo $this->prepareContactManage($_GET['f']);       
+        ?>
+        </div>
+        <?php
+    }
+    
 }

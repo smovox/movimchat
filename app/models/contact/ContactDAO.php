@@ -2,7 +2,7 @@
 
 namespace modl;
 
-class ContactDAO extends SQL {
+class ContactDAO extends ModlSQL {
     function __construct() {
         parent::__construct();
     }
@@ -41,6 +41,9 @@ class ContactDAO extends SQL {
                 gender          = :gender,
                 marital         = :marital,
                 
+                phototype       = :phototype,
+                photobin        = :photobin,
+                
                 description     = :description,
                 
                 mood            = :mood,
@@ -68,10 +71,7 @@ class ContactDAO extends SQL {
                 locbuilding     = :locbuilding,
                 loctext         = :loctext,
                 locuri          = :locuri,
-                loctimestamp    = :loctimestamp,
-                twitter         = :twitter,
-                skype           = :skype,
-                yahoo           = :yahoo
+                loctimestamp    = :loctimestamp
             where contact.jid = :jid';
         
         $this->prepare(
@@ -90,6 +90,9 @@ class ContactDAO extends SQL {
                 
                 'gender'   => $contact->gender,
                 'marital'  => $contact->marital,
+                
+                'phototype'  => $contact->phototype,
+                'photobin'   => $contact->photobin,
                 
                 'description'    => $contact->description,
                 
@@ -125,10 +128,6 @@ class ContactDAO extends SQL {
                 'locuri'            => $contact->locuri,
                 'loctimestamp'      => $contact->loctimestamp,
                 
-                'twitter'           => $contact->twitter,
-                'skype'             => $contact->skype,
-                'yahoo'             => $contact->yahoo,
-                
                 'jid'  => $contact->jid
             )
         );
@@ -152,6 +151,9 @@ class ContactDAO extends SQL {
                 
                 gender,
                 marital,
+                
+                phototype,
+                photobin,
                 
                 description,
                 
@@ -181,11 +183,6 @@ class ContactDAO extends SQL {
                 loctext,
                 locuri,
                 loctimestamp,
-
-                twitter,
-                skype,
-                yahoo,
-                
                 jid)
                 values (
                     :fn,
@@ -201,6 +198,9 @@ class ContactDAO extends SQL {
                     
                     :gender,
                     :marital,
+                    
+                    :phototype,
+                    :photobin,
                     
                     :description,
                     
@@ -230,11 +230,6 @@ class ContactDAO extends SQL {
                     :loctext,
                     :locuri,
                     :loctimestamp,
-
-                    :twitter,
-                    :skype,
-                    :yahoo,
-                    
                     :jid)';
                     
                 
@@ -254,6 +249,9 @@ class ContactDAO extends SQL {
                     
                     'gender'   => $contact->gender,
                     'marital'  => $contact->marital,
+                    
+                    'phototype'  => $contact->phototype,
+                    'photobin'   => $contact->photobin,
                     
                     'description'    => $contact->description,
                     
@@ -288,10 +286,6 @@ class ContactDAO extends SQL {
                     'loctext'           => $contact->loctext,
                     'locuri'            => $contact->locuri,
                     'loctimestamp'      => $contact->loctimestamp,
-                                    
-                    'twitter'           => $contact->twitter,
-                    'skype'             => $contact->skype,
-                    'yahoo'             => $contact->yahoo,
                     
                     'jid'  => $contact->jid
                 )
@@ -344,7 +338,7 @@ class ContactDAO extends SQL {
         left outer join contact
         on rosterlink.jid = contact.jid
         where rosterlink.session = :session
-        order by groupname, rosterlink.jid, presence.value';
+        order by groupname';
         
         $this->prepare(
             'RosterLink', 
@@ -355,20 +349,21 @@ class ContactDAO extends SQL {
         
         return $this->run('RosterContact');
     }
-    // limit 1
+    
     function getRosterChat() {
         $this->_sql = '
             select * from rosterlink 
             left outer join (
                 select * from presence
                 order by presence.priority desc
+                limit 1
                 ) as presence
                 on rosterlink.jid = presence.jid 
             left outer join contact
                 on rosterlink.jid = contact.jid
             where rosterlink.session = :session
                 and rosterlink.chaton > 0
-            order by rosterlink.groupname, rosterlink.jid, presence.value';
+            order by rosterlink.groupname, presence.value, rosterlink.jid';
         
         $this->prepare(
             'RosterLink', 
@@ -380,16 +375,22 @@ class ContactDAO extends SQL {
         return $this->run('RosterContact'); 
     }
     
-    function getRosterItem($jid, $item = false) {
+    function getRosterItem($jid) {
         $this->_sql = '
-        select * from rosterlink
-        left outer join presence
-        on rosterlink.jid = presence.jid and rosterlink.session = presence.session
-        left outer join contact
-        on rosterlink.jid = contact.jid
-        where rosterlink.session = :session
-            and rosterlink.jid = :jid
-        order by groupname, rosterlink.jid, presence.value';
+            select * from rosterlink 
+            left outer join (
+                select * from presence
+                where session = :session
+                and jid = :jid
+                order by presence.value
+                limit 1
+                ) as presence
+                on rosterlink.jid = presence.jid 
+            left outer join contact
+                on rosterlink.jid = contact.jid
+            where rosterlink.session = :session
+                and rosterlink.jid = :jid
+            order by rosterlink.groupname, presence.value, rosterlink.jid';
         
         $this->prepare(
             'RosterLink', 
@@ -399,34 +400,66 @@ class ContactDAO extends SQL {
             )
         );
         
-        if($item)
-            return $this->run('RosterContact'); 
-        else
-            return $this->run('RosterContact', 'item');
+        return $this->run('RosterContact', 'item'); 
     }
-
-    function getMe($item = false) {
-        $this->_sql = '
-            select * from contact
-            left outer join presence on contact.jid = presence.jid
-            where contact.jid = :jid
-            and presence.session = :session';
+    
+    function getRosterSubscribe() {
+        /*$sql = '
+        select 
+            RosterLink.jid,
+            contact.fn,
+            contact.nickname,
+            contact.name,
+            contact.phototype,
+            contact.photobin,
+            contact.loclatitude,
+            contact.loclongitude,
+            contact.localtitude,
+            contact.loccountry,
+            contact.loccountrycode,
+            contact.locregion,
+            contact.locpostalcode,
+            contact.loclocality,
+            contact.locstreet,
+            contact.locbuilding,
+            contact.loctext,
+            contact.locuri,
+            contact.loctimestamp,
+            contact.mood,
+            contact.tuneartist,
+            contact.tunelenght,
+            contact.tunerating,
+            contact.tunesource,
+            contact.tunetitle,
+            contact.tunetrack,
+            RosterLink.rostername,
+            RosterLink.group,
+            RosterLink.chaton,
+            Presence.status,
+            Presence.ressource,
+            Presence.presence,
+            Presence.delay,
+            Presence.last,
+            Presence.node,
+            Presence.ver
+            from RosterLink left outer join 
+            (
+                select * from Presence 
+                where Presence.key=\''.$this->_user.'\'
+                group by jid, node, ver
+                order by presence) as Presence
+            on Presence.jid = RosterLink.jid
+            left join contact on RosterLink.jid = contact.jid
+            where RosterLink.key=\''.$this->_user.'\'
+            and RosterLink.rosterask = \'subscribe\'
+            group by RosterLink.jid
+            order by RosterLink.groupname';
         
-        $this->prepare(
-            'RosterLink', 
-            array(
-                'session' => $this->_user,
-                'jid' => $this->_user
-            )
-        );
+        return $this->mapper('RosterContact', $this->_db->query($sql));*/
         
-        if($item)
-            return $this->run('RosterContact'); 
-        else
-            return $this->run('RosterContact', 'item');
-
+        return null;
     }
-
+    
     function getStatistics() {
         $this->_sql = '
             select 

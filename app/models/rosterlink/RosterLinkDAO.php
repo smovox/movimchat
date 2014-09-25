@@ -2,7 +2,7 @@
 
 namespace modl;
 
-class RosterLinkDAO extends SQL {
+class RosterLinkDAO extends ModlSQL {
     function set(RosterLink $r) { 
         $this->_sql = '
             insert into rosterlink
@@ -38,64 +38,6 @@ class RosterLinkDAO extends SQL {
                 'groupname'     => $r->groupname,
                 'chaton'        => $r->chaton
             )
-        );
-        
-        return $this->run('RosterLink');
-    }
-    
-    function setList($arr) {
-        $this->_sql = '
-            insert into rosterlink
-            (
-                session, 
-                jid, 
-                rostername, 
-                rosterask, 
-                rostersubscription,
-                realname,
-                groupname,
-                chaton)
-                values
-            ';     
-               
-        $i = 0;
-        $params = array();
-            
-        foreach($arr as $r) {
-            $this->_sql .= "
-                (
-                :session_$i, 
-                :jid_$i, 
-                :rostername_$i, 
-                :rosterask_$i, 
-                :rostersubscription_$i,
-                :realname_$i,
-                :groupname_$i,
-                :chaton_$i
-                ),";
-        
-            $params = array_merge(
-                $params,
-                array(
-                    "session_$i"       => $this->_user,
-                    "jid_$i"           => $r->jid,
-                    "rostername_$i"    => $r->rostername,
-                    "rosterask_$i"     => $r->rosterask,
-                    "rostersubscription_$i"     => $r->rostersubscription,
-                    "realname_$i"      => $r->realname,
-                    "groupname_$i"     => $r->groupname,
-                    "chaton_$i"        => $r->chaton
-                )
-            );
-            
-            $i++;
-        }
-        
-        $this->_sql = substr($this->_sql, 0, -1);
-        
-        $this->prepare(
-            'RosterLink',
-            $params
         );
         
         return $this->run('RosterLink');
@@ -189,17 +131,12 @@ class RosterLinkDAO extends SQL {
         );
         
         $results = $this->run('RosterLink');
-
-        if(is_array($results)) {
-            $arr = array();
+        $arr = array();
+        
+        foreach($results as $r)
+            array_push($arr, $r->groupname);
             
-            foreach($results as $r)
-                array_push($arr, $r->groupname);
-                
-            return $arr;
-        } else {
-            return false;
-        }
+        return $arr;
     }
     
     function getRoster($to = null) {
@@ -239,6 +176,25 @@ class RosterLinkDAO extends SQL {
         
         return $this->run('RosterLink');
     }
+    
+    /*function getChat($jid) {
+        $this->_sql = '
+            select *
+            from rosterlink
+            where session=:session
+            and chaton > 0
+            and jid = :jid';
+        
+        $this->prepare(
+            'RosterLink', 
+            array(
+                'session' => $this->_user,
+                'jid'     => $jid
+            )
+        );
+        
+        return $this->run('RosterLink');
+    }*/
     
     function clearRosterLink() {
         $this->_sql = '

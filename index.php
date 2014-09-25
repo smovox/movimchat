@@ -2,14 +2,14 @@
 
 /**
  * @file index.php
- * This file is part of Movim.
+ * This file is part of MOVIM.
  *
  * @brief Prepares all the needed fixtures and fires up the main request
  * handler.
  *
- * @author Movim Project <contact@movim.eu>
+ * @author Movim Project <movim@movim.eu>
  *
- * Copyright (C)2013 Movim Project
+ * Copyright (C)2010 Movim Project
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -40,9 +40,6 @@
 define('DOCUMENT_ROOT', dirname(__FILE__));
 require_once(DOCUMENT_ROOT.'/bootstrap.php');
 
-use Monolog\Logger;
-use Monolog\Handler\SyslogHandler;
-
 try {
     if((isset($_GET['q']) && $_GET['q'] == 'admin') ||
        (isset($_GET['query']) && $_GET['query'] == 'admin')
@@ -55,7 +52,7 @@ try {
     
     $bootstrap->boot();
 
-    $rqst = new FrontController();
+    $rqst = new ControllerMain();
     $rqst->handle();
     
     WidgetWrapper::getInstance(false);
@@ -63,9 +60,8 @@ try {
     WidgetWrapper::destroyInstance();
     
 } catch (Exception $e) {
-    $log = new Logger('movim');
-    $log->pushHandler(new SyslogHandler('movim'));
-    $log->addInfo($e->getMessage());
+    //manage errors
+    \system\Logs\Logger::displayDebugCSS();
     
     if (ENVIRONMENT === 'development' && !FAIL_SAFE) {
         ?>
@@ -85,7 +81,10 @@ try {
     
     if(FAIL_SAFE) {
         $r = new Route;
-        $rqst = new FrontController();
+        $rqst = new ControllerMain();
         $rqst->handle();
     }
 } 
+
+//display only if not already done and if there is something to display
+\system\Logs\Logger::displayFooterDebug();

@@ -1,27 +1,26 @@
 <?php
 
-namespace Modl;
+namespace modl;
 
-class Postn extends Model {
+class Postn extends ModlModel {
     public $session;
 
-    public $jid;            // Where the post is comming from (jid or server)
-    public $node;           // microblog or pubsub
-    public $nodeid;         // the ID if the item
-        
-    public $aname;          // author name
-    public $aid;            // author id
-    public $aemail;         // author email
-        
-    public $title;          //
-    public $content;        // The content
-    public $contentcleaned; // The cleanned content
+    public $jid;       // Where the post is comming from (jid or server)
+    public $node;       // microblog or pubsub
+    public $nodeid;     // the ID if the item
+    
+    public $aname;      // author name
+    public $aid;        // author id
+    public $aemail;     // author email
+    
+    public $title;      //
+    public $content;    // the content
     
     public $commentplace;
     
-    public $published;      //
-    public $updated;        //
-    public $delay;          //
+    public $published;  //
+    public $updated;    //
+    public $delay;      //
 
     public $tags;
 
@@ -56,8 +55,6 @@ class Postn extends Model {
             "title" : 
                 {"type":"text" },
             "content" : 
-                {"type":"text" },
-            "contentcleaned" : 
                 {"type":"text" },
             "commentplace" : 
                 {"type":"string", "size":128 },
@@ -145,18 +142,16 @@ class Postn extends Model {
             $content = '';
         
         $content = $summary.$content;
-
-        if($entry->entry->updated)    
-            $this->updated   = (string)$entry->entry->updated;
-        else
-            $this->updated   = date(DATE_ISO8601);
         
         if($entry->entry->published)    
-            $this->published = (string)$entry->entry->published;
-        elseif($entry->entry->updated)
-            $this->published = (string)$entry->entry->updated;
+            $this->published = date(DATE_ISO8601, strtotime((string)$entry->entry->published));
         else
             $this->published = date(DATE_ISO8601);
+            
+        if($entry->entry->updated)    
+            $this->updated   = date(DATE_ISO8601, strtotime((string)$entry->entry->updated));
+        else
+            $this->updated   = date(DATE_ISO8601);
         
         if($delay)
             $this->delay     = $delay;
@@ -186,7 +181,6 @@ class Postn extends Model {
             $this->commentplace = $this->jid;
             
         $this->content = trim($content);
-        $this->contentcleaned = prepareString(html_entity_decode($this->content));
         
         if($entry->entry->geoloc) {
             if($entry->entry->geoloc->lat != 0)
@@ -224,13 +218,6 @@ class Postn extends Model {
         if(isset($this->lat, $this->lon) && $this->lat != '' && $this->lon != '') {
             return true;
         }
-        else
-            return false;
-    }
-
-    public function isMicroblog() {
-        if($this->node == "urn:xmpp:microblog:0")
-            return true;
         else
             return false;
     }

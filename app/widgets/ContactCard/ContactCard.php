@@ -21,16 +21,10 @@
 class ContactCard extends WidgetCommon
 {
 
-    function load()
+    function WidgetLoad()
     {
     	$this->addcss('contactcard.css');
 		$this->registerEvent('vcard', 'onVcard');
-    }
-    
-    function display()
-    {
-        $cd = new \Modl\ContactDAO();
-        $this->view->assign('contact', $cd->get($_GET['f']));
     }
 
     function onVcard($contact)
@@ -47,8 +41,8 @@ class ContactCard extends WidgetCommon
         $html = '';
 
         $html .= '
-            <form name="vcard" id="vcardform">
-            <h1>'.t('Profile').'</h1>
+            <form name="vcard" id="vcardform"><br />
+            <h1>'.t('Profile').'</h1><br />
                 <fieldset>
                     <legend>'.t('General Informations').'</legend>';
                     
@@ -64,29 +58,32 @@ class ContactCard extends WidgetCommon
                         <span>'.$contact->name.'</span>
                       </div>';
 
-            if(strtotime($contact->date) != 0)
+            if(
+                $contact->date != '0000-00-00T00:00:00+0000' 
+                && $contact->date != '1970-01-01T00:00:00+0000'
+                && $this->testIsSet($contact->date))
             $html .= '<div class="element simple">
                         <label for="day">'.t('Date of Birth').'</label>
-                        <span>'.prepareDate(strtotime($contact->date), false).'</span>
+                        <span>'.date('j M Y',strtotime($contact->date)).'</span>
                       </div>';
             
             if($contact->gender != 'N' && $this->testIsSet($contact->gender))
             $html .= '<div class="element simple">
                         <label for="gender">'.t('Gender').'</label>
-                        <span>'.$gender[(string)$contact->gender].'</span>
+                        <span>'.$gender[$contact->gender].'</span>
                       </div>';
        
             if($contact->marital != 'none' && $this->testIsSet($contact->marital))               
             $html .= '<div class="element simple">
                         <label for="marital">'.t('Marital Status').'</label>
-                        <span>'.$marital[(string)$contact->marital].'</span>
+                        <span>'.$marital[$contact->marital].'</span>
                       </div>';
-
+         
             if($this->testIsSet($contact->email)) {
                 if(filter_var($contact->email, FILTER_VALIDATE_EMAIL)) {
                     $html .= '<div class="element simple">
                                 <label for="url">'.t('Email').'</label>
-                                <img src="'.$contact->getPhoto('email').'"/>
+                                <a target="_blank" href="mailto:'.$contact->email.'">'.$contact->email.'</a>
                               </div>';
                 } else {
                     $html .= '<div class="element simple">
@@ -113,7 +110,7 @@ class ContactCard extends WidgetCommon
             if($this->testIsSet($contact->description) && prepareString($contact->description) != '')
             $html .= '<div class="element large simple">
                         <label for="desc">'.t('About Me').'</label>
-                        <span style="white-space: pre-wrap;">'.prepareString($contact->description).'</span>
+                        <span>'.prepareString($contact->description).'</span>
                       </div>';
                       
             if($this->testIsSet($contact->adrlocality) ||
@@ -125,7 +122,7 @@ class ContactCard extends WidgetCommon
                             
                 if($this->testIsSet($contact->adrlocality)) {
                     $locality = '<div class="element simple">
-                                <label for="adrlocality">'.t('Locality').'</label>
+                                <label for="desc">'.t('Locality').'</label>
                                 <span>'.$contact->adrlocality;
                     if($contact->adrpostalcode != 0)
                         $locality .= ' ('.$contact->adrpostalcode.')';
@@ -137,7 +134,7 @@ class ContactCard extends WidgetCommon
                             
                 if($this->testIsSet($contact->adrcountry))
                 $html .= '<div class="element simple">
-                            <label for="adrcountry">'.t('Country').'</label>
+                            <label for="desc">'.t('Country').'</label>
                             <span>'.$contact->adrcountry.'</span>
                           </div>';
             }
@@ -147,5 +144,20 @@ class ContactCard extends WidgetCommon
                 </form>';
         
         return $html;
+    }
+
+    function build()
+    {
+        $cd = new modl\ContactDAO();
+        $contact = $cd->get($_GET['f']);
+        ?>
+        <div class="tabelem" title="<?php echo t('Profile'); ?>" id="contactcard" >
+            <div style="position:relative;top:0px;right:-1.5em;" class="protect red" title="<?php echo getFlagTitle('red'); ?>"></div>
+            <?php
+            if(isset($contact))
+                echo $this->prepareContactCard($contact);
+            ?>
+        </div>
+        <?php
     }
 }

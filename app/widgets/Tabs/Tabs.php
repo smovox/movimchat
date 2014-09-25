@@ -20,9 +20,18 @@
 
 class Tabs extends WidgetBase
 {
-    function load()
+    function WidgetLoad()
     {
         $this->addcss('tabs.css');
         $this->addjs('tabs.js');
+    }
+    
+    function build() {  
+    ?>
+    <ul id="navtabs">
+
+    </ul>
+
+    <?php    
     }
 }

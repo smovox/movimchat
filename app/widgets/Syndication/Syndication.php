@@ -19,9 +19,10 @@
 
 class Syndication extends WidgetBase
 {
-    function load()
+    function WidgetLoad()
     {
         ob_clean();
+        header("Content-Type: application/atom+xml; charset=UTF-8");
 
         $from = $_GET['f'];
         $node = $_GET['n'];
@@ -37,7 +38,6 @@ class Syndication extends WidgetBase
         }
         
         if(isset($messages[0])) {
-            header("Content-Type: application/atom+xml; charset=UTF-8");
             // Title and logo
             // For a Pubsub feed
             if(isset($from) && isset($node) && $node != 'urn:xmpp:microblog:0') {
@@ -55,24 +55,21 @@ class Syndication extends WidgetBase
             
             $this->view->assign('date', date('c'));
             $this->view->assign('name', $messages[0]->getContact()->getTrueName());
-            $this->view->assign('uri',  htmlentities(Route::urlize('blog',array($from, $node))));
-            $this->view->assign('link', '<link rel="self" href="'.htmlentities(Route::urlize('feed',array($from, $node))).'"/>');
+            $this->view->assign('uri',  Route::urlize('blog',array($from, $node)));
+            $this->view->assign('link', '<link rel="self" href="'.Route::urlize('feed',array($from, $node)).'"/>');
             $this->view->assign('uuid', generateUUID($from.$node));
         }
     }
     
     function prepareTitle($title) {
         if($title == null)
-            return '...';
+            return trim(substr(strip_tags($title), 0, 40)).'...';
         else
-            return $this->prepareContent($title, true);     
+            return $this->prepareContent($title);     
     }
     
-    function prepareContent($content, $title = false) {
-        if($title)
-            return cleanHTMLTags($content);
-        else
-            return trim(cleanHTMLTags(prepareString($content)));
+    function prepareContent($content) {
+        return cleanHTMLTags(prepareString($content));
     }
 
     function generateUUID($content) {

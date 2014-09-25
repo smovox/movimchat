@@ -1,15 +1,20 @@
 <?php
 
-/**
- * @file TplPageBuilder.php
- * This file is part of Movim.
- * 
- * @brief This class is the templating engine for movim. It also handles themes.
- *
- * @author Timothée jaussoin
- *
- */
+//doc
+//    classname:    PageBuilder
+//    scope:        PUBLIC
+//
+///doc
 
+/**
+ * \class PageBuilder
+ * \brief Templating engine for Movim
+ *
+ * This class is the templating engine for movim. It determines what page to
+ * load based on the context and fills in placeholder values ('%' delimited).
+ *
+ * It also handles themes.
+ */
 class TplPageBuilder
 {
     //    internal variables
@@ -29,16 +34,14 @@ class TplPageBuilder
     function __construct(&$user = NULL)
     {
         $this->user = $user;
-
-        $cd = new \Modl\ConfigDAO();
-        $config = $cd->get();
-        $this->theme = $config->theme;
+        $conf = new \system\Conf();
+        $this->theme = $conf->getServerConfElement('theme');
      
     }
 
-    function viewsPath($file)
+    function theme_path($file)
     {
-        return VIEWS_PATH . '/' . $file;
+        return THEMES_PATH . $this->theme . '/' . $file;
     }
 
     /**
@@ -46,7 +49,7 @@ class TplPageBuilder
      * @param file is the path to the file relative to the theme's root
      * @param return optionally returns the link instead of printing it if set to true
      */
-    function linkFile($file, $return = false)
+    function link_file($file, $return = false)
     {
         $path = BASE_URI . 'themes/' . $this->theme . '/' . $file;
 
@@ -60,27 +63,44 @@ class TplPageBuilder
     /**
      * Inserts the link tag for a css file.
      */
-    function themeCss($file)
+    function theme_css($file)
     {
         echo '<link rel="stylesheet" href="'
-            . $this->linkFile($file, true) .
+            . $this->link_file($file, true) .
             "\" type=\"text/css\" />\n";
     }
-    
+
+    /**
+     * Inserts the link tag for a theme picture
+     */
+    function theme_img($src, $alt)
+    {
+        $size = getimagesize($this->link_file($src, true));
+        $outp = '<img src="'
+            . $this->link_file($src, true) . '" '
+            . $size["3"];
+
+        if(!empty($alt)) {
+            $outp .=' alt="'.$alt.'"';
+        }
+        $outp .='>';
+
+        return $outp;
+    }
+
     /**
      * Actually generates the page from templates.
      */
     function build($template)
     {
-        if (ENVIRONMENT === 'production') ob_clean();
+        if (ENVIRONMENT === 'production')ob_clean();
         ob_start();
-
-        require($this->viewsPath($template));
+        
+        require($this->theme_path($template));
         $outp = ob_get_clean();
         $outp = str_replace('<%scripts%>',
                             $this->printCss() . $this->printScripts(),
                             $outp);
-
         return $outp;
     }
 
@@ -103,14 +123,13 @@ class TplPageBuilder
     /**
      * Adds a link to the menu with the displayed label.
      */
-    function menuAddLink($label, $href, $active = false, $mobile = false)
+    function menuAddLink($label, $href, $active = false)
     {
         $this->menu[] = array(
             'type' => 'link',
             'label' => $label,
             'href' => $href,
-            'active' => $active,
-            'mobile' => $mobile
+            'active' => $active
             );
     }
 
@@ -135,10 +154,6 @@ class TplPageBuilder
                 if($link['active'] == true) {
                     echo ' active ';
                 }
-                // If we display only the link on desktop
-                if($link['mobile'] == true) {
-                    echo ' on_desktop ';
-                }
                 echo '"';
                 echo "><span class=\"mobile\">".$link['label'] . "</span></a></li>\n";
             } else {
@@ -158,7 +173,7 @@ class TplPageBuilder
      */
     function addCss($file)
     {
-        $this->css[] = $this->linkFile($file, true);
+        $this->css[] = $this->link_file($file, true);
     }
 
     function scripts()
@@ -176,7 +191,7 @@ class TplPageBuilder
                  '"></script>'."\n";
         }
 
-        $ajaxer = AjaxController::getInstance();
+        $ajaxer = ControllerAjax::getInstance();
         $out .= $ajaxer->genJs();
 
         return $out;
@@ -219,12 +234,12 @@ class TplPageBuilder
     function widget($name, $register = true)
     {
         $widgets = WidgetWrapper::getInstance($register);
-        echo $widgets->runWidget($name, 'build');
+        $widgets->run_widget($name, 'build');
     }
     
     function displayFooterDebug()
     {
-        //\system\Logs\Logger::displayFooterDebug();
+        \system\Logs\Logger::displayFooterDebug();
     }
 }
 

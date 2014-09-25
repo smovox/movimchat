@@ -1,18 +1,9 @@
-<?php
+<?Php
 
 /**
- * @file User.php
- * This file is part of Movim.
+ * \class User
+ * \brief Handles the user's login and user.
  *
- * @brief Handles the user's login and user.
- *
- * @author Jaussoin Timothée
- *
- * @date 2014
- *
- * Copyright (C)2014 Movim
- *
- * See COPYING for licensing information.
  */
 class User {
     private $xmppSession;
@@ -33,17 +24,14 @@ class User {
      */
     function __construct()
     {
-        $session = \Sessionx::start();
-        if($session->active) {   
-            $this->username = $session->user.'@'.$session->host;
+        if($this->isLogged()) {
+            global $session;
+            $this->username = $session['user'].'@'.$session['host'];
             
-            if($session->config)
-                $this->config = $session->config;
+            if(isset($session['config']))
+                $this->config = $session['config'];
 
-            $cd = new \Modl\ConfigDAO();
-            $config = $cd->get();
-        
-            $this->sizelimit = (int)$config->sizelimit;
+            $this->sizelimit = (int)\system\Conf::getServerConfElement('sizeLimit');
 
             $this->userdir = DOCUMENT_ROOT.'/users/'.$this->username.'/';
             $this->useruri = BASE_URI.'users/'.$this->username.'/';
@@ -58,7 +46,7 @@ class User {
         $sum = 0;
 
         foreach($this->getDir() as $s)
-            $sum = $sum + filesize($this->userdir.$s);
+            $sum = $sum + filesize($s['dir']);
         
         return $sum;
     }
@@ -74,9 +62,16 @@ class User {
                 if(
                     $s != '.' && 
                     $s != '..' && 
+                    substr($s, 0, 6) != 'thumb_' &&
+                    substr($s, 0, 7) != 'medium_' && 
                     $s != 'index.html') {
-
-                    array_push($dir, $s);
+                    
+                    $file = array(
+                        'uri'       => $this->useruri.$s,
+                        'dir'       => $this->userdir.$s,
+                        'thumb'    => $this->useruri.'thumb_'.$s,
+                        'medium'   => $this->useruri.'medium_'.$s);
+                    $dir[$s] = $file;
                 }
             }
         
@@ -89,10 +84,10 @@ class User {
     function isLogged()
     {
         // User is not logged in if both the session vars and the members are unset.
-        $session = \Sessionx::start();
+        global $session;
 
-        if($session->active)
-            return $session->active;
+        if(isset($session['on']) && $session['on'])
+            return $session['on'];
         else
             return false;
     }
@@ -101,9 +96,10 @@ class User {
     {
         $pd = new modl\PresenceDAO();
         $pd->clearPresence($this->username);
-
-        $s = \Sessionx::start();
-        $s->destroy();
+            /*if($this->isLogged()) {
+                $p = new moxl\PresenceUnavaiable();
+                $p->request();
+            }*/
             
         $sess = Session::start(APP_NAME);
         Session::dispose(APP_NAME);
@@ -121,8 +117,11 @@ class User {
 
     function setConfig(array $config)
     {
-        $session = \Sessionx::start();
-        $session->config = $config;
+        global $session;
+        $session['config'] = $config;
+
+        $sess = Session::start(APP_NAME);
+        $sess->set('session', $session);
     }
 
     function getConfig($key = false)

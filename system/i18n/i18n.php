@@ -30,8 +30,7 @@
 require_once('languages.php');
 
 $language = "";
-$hash = array();
-$translationshash = array();
+$translations = array();
 
 /**
  * Translates strings into the given langage.
@@ -62,23 +61,11 @@ function t($string)
         $args[0] = $lstring; // Replacing with the translated string.
         $lstring = call_user_func_array("sprintf", $args);
     }
-    
+
     return $lstring;
 }
 
-function __() {
-    global $translationshash;
-    
-    $args = func_get_args();
-    if(is_array($translationshash) && array_key_exists($args[0], $translationshash)) {
-        $args[0] = $translationshash[$args[0]];
-        return call_user_func_array('t', $args);
-    } else {
-        return $args[0];
-    }
-}
-
-function getQuotedString($string)
+function get_quoted_string($string)
 {
     $matches = array();
     preg_match('#"(.+)"#', $string, $matches);
@@ -90,7 +77,7 @@ function getQuotedString($string)
 /**
  * Parses a .po file.
  */
-function parseLangFile($pofile)
+function parse_lang_file($pofile)
 {
     if(!file_exists($pofile)) {
         return false;
@@ -116,14 +103,14 @@ function parseLangFile($pofile)
                 $trans_string[$msgid] = $msgstr;
             }
             $last_token = "msgid";
-            $msgid = getQuotedString($line);
+            $msgid = get_quoted_string($line);
         }
         else if(preg_match('#^msgstr#', $line)) {
             $last_token = "msgstr";
-            $msgstr = getQuotedString($line);
+            $msgstr = get_quoted_string($line);
         }
         else {
-            $last_token .= getQuotedString($line);
+            $last_token .= get_quoted_string($line);
         }
     }
     if($last_token == "msgstr") {
@@ -138,7 +125,7 @@ function parseLangFile($pofile)
 /**
  * Auto-detects and loads the language.
  */
-function loadLanguageAuto()
+function load_language_auto()
 {
     $langs = array();
     $langNotFound = true;
@@ -156,17 +143,11 @@ function loadLanguageAuto()
     }
     
     while((list($key, $value) = each($langs)) && $langNotFound == true) {
-        $exploded = explode('-', $key);
-        $key = reset($exploded);
-
-        $cd = new \Modl\ConfigDAO();
-        $config = $cd->get();
-        
         if($key == 'en') {
-            loadLanguage($config->locale);
+            load_language(\system\Conf::getServerConfElement('defLang'));
             $langNotFound = false;
-        } elseif(file_exists(LOCALES_PATH . $key . '.po')) {
-            loadLanguage($key);
+        } elseif(file_exists(DOCUMENT_ROOT . '/locales/' . $key . '.po')) {
+            load_language($key);
             $langNotFound = false;
         }
     }
@@ -175,26 +156,21 @@ function loadLanguageAuto()
 /**
  * Loads the given language.
  */
-function loadLanguage($lang)
+function load_language($lang)
 {
     global $translations;
     global $language;
-    global $translationshash;
 
     if($lang == $language) {
         return true;
     }
 
     // Here we load the compiled language file
-    if(file_exists(CACHE_PATH . '/locales/' . $lang . '.php')) {
-        // And we set our global $translations
-        require_once(CACHE_PATH . '/locales/' . $lang . '.php');
+    if(file_exists(DOCUMENT_ROOT . '/cache/locales/' . $lang . '.php')) {
+        // And we set our gloabl $translations
+        require_once(DOCUMENT_ROOT . '/cache/locales/' . $lang . '.php');
     } else
-        $translations = parseLangFile(LOCALES_PATH . $lang . '.po');
-        
-    if(file_exists(LOCALES_PATH . 'locales.ini')) {
-        $translationshash = parse_ini_file(LOCALES_PATH . 'locales.ini');
-    }
+        $translations = parse_lang_file(DOCUMENT_ROOT . '/locales/' . $lang . '.po');
 
     $language = $lang;
 
@@ -205,7 +181,7 @@ function loadLanguage($lang)
  * Loads a .po file and adds the translations to the existing ones.
  * Conflicting translation strings will be rejected.
  */
-function loadExtraLang($directory)
+function load_extra_lang($directory)
 {
     global $translations;
     global $language;
@@ -217,7 +193,7 @@ function loadExtraLang($directory)
         $directory .= '/';
     }
 
-    $trans = parseLangFile($directory . $language . '.po');
+    $trans = parse_lang_file($directory . $language . '.po');
 
     if(!$trans) {
         return false;
@@ -239,9 +215,9 @@ function loadExtraLang($directory)
  *
  */
 
-function loadLangArray() {
+function load_lang_array() {
     $lang_list = get_lang_list();
-    $dir = scandir(LOCALES_PATH);
+    $dir = scandir(DOCUMENT_ROOT . '/locales/');
     $po = array();
     foreach($dir as $files) {
         $explode = explode('.', $files);

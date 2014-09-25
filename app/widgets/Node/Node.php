@@ -18,53 +18,15 @@
  * See COPYING for licensing information.
  */
 
-use Moxl\Xec\Action\Pubsub\GetItems;
-use Moxl\Xec\Action\Pubsub\Subscribe;
-use Moxl\Xec\Action\Pubsub\Unsubscribe;
-use Moxl\Xec\Action\Pubsub\GetAffiliations;
-use Moxl\Xec\Action\Pubsub\GetMetadata;
-use Moxl\Xec\Action\Pubsub\GetSubscriptions;
-
 class Node extends WidgetCommon
 {
-    private $role;
-    private $_feedsize = 10;
-    
-    function load()
+    function WidgetLoad()
     {
-        $this->registerEvent('post', 'onStream');
         $this->registerEvent('stream', 'onStream');
         $this->registerEvent('nostream', 'onStream');
-        $this->registerEvent('pubsubaffiliations', 'onPubsubAffiliations');
         $this->registerEvent('pubsubsubscribed', 'onPubsubSubscribed');
-        $this->registerEvent('pubsubmetadata', 'onPubsubMetadata');
         $this->registerEvent('pubsubsubscribederror', 'onPubsubSubscribedError');
         $this->registerEvent('pubsubunsubscribed', 'onPubsubUnsubscribed');
-    }
-
-    function display()
-    {
-        if(isset($_GET['s']) && isset($_GET['n'])) {
-            $this->view->assign('server', $_GET['s']);
-            $this->view->assign('node',   $_GET['n']);
-            $this->view->assign('getaffiliations',  $this->genCallAjax('ajaxGetAffiliations', "'".$_GET['s']."'", "'".$_GET['n']."'"));
-            $this->view->assign('getmetadata',      $this->genCallAjax('ajaxGetMetadata', "'".$_GET['s']."'", "'".$_GET['n']."'"));
-            $this->view->assign('hash',             md5($_GET['s'].$_GET['n']));
-            $this->view->assign('items',            $this->prepareNode($_GET['s'], $_GET['n']));
-            $this->view->assign('metadata',         $this->prepareMetadata($_GET['s'], $_GET['n']));
-            
-            $nd = new modl\ItemDAO();
-            $node = $nd->getItem($_GET['s'], $_GET['n']);
-            
-            if($node != null)
-                $title = $node->getName();
-            else
-                $title = $groupid;
-
-            $this->view->assign('title',          $title);
-            
-            $this->view->assign('formpublish', $this->prepareSubmitForm($_GET['s'], $_GET['n']));
-        }
     }
     
     function onPubsubSubscribed($params)
@@ -84,24 +46,6 @@ class Node extends WidgetCommon
     {
         $this->onPubsubSubscribed($params);
     }
-
-    function onPubsubAffiliations($params) {
-        foreach($params[0] as $r) {
-            if($r[0] == $this->user->getLogin())
-                $this->role = (string)$r[1];
-        }
-
-        if($this->searchSubscription($params[1], $params[2])
-        && ($this->role == 'owner' || $this->role == 'publisher')) {
-            RPC::call('movim_toggle_display', '#formpublish');
-            RPC::call('movim_toggle_display', '#configbutton');
-        }
-    }
-
-    function onPubsubMetadata($params) {
-        $html = $this->prepareMetadata($params[0], $params[1]);
-        RPC::call('movim_fill', 'metadata', $html);
-    }
     
     function onStream($payload) {
         $html = $this->prepareNode($payload['from'], $payload['node']);
@@ -113,10 +57,7 @@ class Node extends WidgetCommon
 
     function ajaxGetItems($server, $node)
     {
-        $pd = new \Modl\PostnDAO();
-        $pd->deleteNode($server, $node);
-    
-        $r = new GetItems;
+        $r = new moxl\PubsubGetItems();
         $r->setTo($server)
           ->setNode($node)
           ->request();
@@ -124,7 +65,7 @@ class Node extends WidgetCommon
     
     function ajaxSubscribe($data, $server, $node)
     {
-        $g = new Subscribe;
+        $g = new moxl\PusubSubscribe();
         $g->setTo($server)
           ->setNode($node)
           ->setFrom($this->user->getLogin())
@@ -134,10 +75,10 @@ class Node extends WidgetCommon
     
     function ajaxUnsubscribe($server, $node)
     {
-        $sd = new \Modl\SubscriptionDAO();
+        $sd = new \modl\SubscriptionDAO();
 
         foreach($sd->get($server, $node) as $s) {
-            $g = new Unsubscribe;
+            $g = new moxl\PubsubUnsubscribe();
             $g->setTo($server)
               ->setNode($node)
               ->setSubid($s->subid)
@@ -148,102 +89,152 @@ class Node extends WidgetCommon
     
     function ajaxGetSubscriptions($server, $node)
     {
-        $r = new GetSubscriptions;
+        $r = new moxl\PubsubGetSubscriptions();
         $r->setTo($server)
           ->setNode($node)
           ->setSync()
           ->request();
     }
-
-    function ajaxGetAffiliations($server, $node){
-        $r = new GetAffiliations;
-        $r->setTo($server)->setNode($node)
-          ->request();
-    }
-    
-    function ajaxGetMetadata($server, $node){
-        $r = new GetMetadata;
-        $r->setTo($server)->setNode($node)
-          ->request();
-    }
     
     function prepareNode($serverid, $groupid) {
-        $nodeview = $this->tpl();
-        $nodeview->assign('serverid',       $serverid);
-        $nodeview->assign('groupid',        $groupid);
-        $nodeview->assign('subscribed',     $this->searchSubscription($serverid, $groupid));
-        
-        $nodeview->assign('role',           $this->role);
-        
-        $nodeview->assign('refresh',        $this->genCallAjax('ajaxGetItems', "'".$serverid."'", "'".$groupid."'"));
-        $nodeview->assign('getsubscription',$this->genCallAjax('ajaxGetSubscriptions', "'".$serverid."'", "'".$groupid."'"));
-        $nodeview->assign('subscribe',      $this->genCallAjax('ajaxSubscribe', "movim_parse_form('groupsubscribe')", "'".$serverid."'", "'".$groupid."'"));
-        $nodeview->assign('unsubscribe',    $this->genCallAjax('ajaxUnsubscribe', "'".$serverid."'", "'".$groupid."'"));
-
-        $nodeview->assign('submitform',     '');
-
-        $nodeview->assign('posts',          $this->preparePostsNode($serverid, $groupid, -1));
-
-        $html = $nodeview->draw('_node_content', true);
-        
-        return $html;
-    }
-
-    function prepareNext($start, $html = '', $posts, $function = 'ajaxGetPostsNode', $serverid, $groupid) {
-        $next = $start + $this->_feedsize;
-        
-        $nexthtml = '';
-            
-        if(sizeof($posts) > $this->_feedsize-1 && $html != '') {
-            $nexthtml = '
-                <div class="block large">
-                    <div
-                        class="older"
-                        onclick="'.$this->genCallAjax($function, "'".$serverid."'", "'".$groupid."'", "'".$next."'").'; this.parentNode.style.display = \'none\'">
-                        <i class="fa fa-history"></i> '. __('post.older') .'
-                    </div>
-                </div>';
-        }   
-
-        return $nexthtml;
-    }
-
-    function prepareMetadata($server, $node) {
         $nd = new modl\ItemDAO();
-        $node = $nd->getItem($server, $node);
-
-        $metadataview = $this->tpl();
-        if(isset($node->name))
-            $metadataview->assign('title',       $node->name);
+        $node = $nd->getItem($serverid, $groupid);
+        
+        if($node != null)
+            $title = $node->getName();
         else
-            $metadataview->assign('title',       $node->node);
-        $metadataview->assign('description', $node->description);
-        $metadataview->assign('creation',    prepareDate(strtotime($node->created)));
-        $metadataview->assign('creator',     $node->creator);
+            $title = $groupid;
+        
+        if($this->searchSubscription($serverid, $groupid))
+            $button = '
+                <a
+                    href="#" 
+                    class="button color icon back"
+                    onclick="movim_toggle_display(\'#groupunsubscribe\')">
+                    '.t('Unsubscribe').'
+                </a>';
+        else
+            $button = '
+                <a 
+                    href="#" 
+                    class="button color green icon next"
+                    onclick="movim_toggle_display(\'#groupsubscribe\')">
+                    '.t('Subscribe').'
+                </a>';
+        
+        $html = '
+            <div class="breadcrumb">
+                <a href="'.Route::urlize('explore').'">
+                    '.t('Explore').'
+                </a>
+                <a href="'.Route::urlize('server', $serverid).'">
+                    '.$serverid.'
+                </a>
+                <a href="'.Route::urlize('node', array($serverid, $groupid)).'">
+                    '.$title.'
+                </a>
+                <a>'.t('Posts').'</a>
+            </div>
+            <div class="clear"></div>
+            <div class="posthead">
+                '.$button.'
+                <a 
+                    class="button color icon blog merged left" 
+                    href="'.Route::urlize('blog',array($serverid,$groupid)).'"
+                    target="_blank"
+                >
+                    '.t('Blog').'
+                </a><a 
+                    class="button color orange icon alone feed merged right" 
+                    href="'.Route::urlize('feed',array($serverid,$groupid)).'"
+                    target="_blank"
+                ></a>
+                <a
+                    href="#"
+                    onclick="'.$this->genCallAjax('ajaxGetItems', "'".$serverid."'", "'".$groupid."'").'
+                    this.className=\'button icon color alone orange loading\'; this.onclick=null;"
+                    class="button color blue icon alone refresh">
+                    
+                </a>
+                
+                <a 
+                    class="button color icon yes"
+                    onclick="
+                        '.$this->genCallAjax('ajaxGetSubscriptions', "'".$serverid."'", "'".$groupid."'").'"
+                >'.t('Get Subscription').'</a>
+                <a 
+                    class="button color icon user"
+                    style="float: right;"
+                    href="'.Route::urlize('nodeconfig', array($serverid,$groupid)).'"
+                >'.t('Configuration').'</a>
+            </div>
+            
+            <div class="popup" id="groupsubscribe">
+                <form name="groupsubscribe">
+                    <fieldset>
+                        <legend>'.t('Subscribe').'</legend>
+                        <div class="element">
+                            <label>'.t('Make your membership to this group public to your friends').'</label>                            
+                            <div class="checkbox">
+                                <input type="checkbox" name="listgroup" id="listgroup"/>
+                                <label for="listgroup"></label>
+                            </div>
+                        </div>
+                        <div class="element">
+                            <label for="grouptitle">'.t('Give a nickname to this group if you want').'</label>
+                            <input type="text" name="title" value="'.$groupid.'" id="grouptitle"/>
+                        </div>
+                    </fieldset>
+                    <div class="menu">
+                        <a 
+                            class="button tiny icon yes black merged left"
+                            onclick="
+                                '.$this->genCallAjax('ajaxSubscribe', "movim_parse_form('groupsubscribe')", "'".$serverid."'", "'".$groupid."'").'
+                                this.onclick=null;"
+                        >'.t('Subscribe').'</a><a 
+                            class="button tiny icon no black merged right" 
+                            onclick="
+                                movim_toggle_display(\'#groupsubscribe\');"
+                        >'.t('Close').'</a>
+                    </div>
+                </form>
+            </div>
+            <div class="popup" id="groupunsubscribe">
+                <form name="groupunsubscribe">
+                    <fieldset>
+                        <legend>'.t('Unsubscribe').'</legend>
+                        <div class="element">
+                            <label>'.t('Are you sure ?').'</label>
+                        </div>
+                    </fieldset>
+                    <div class="menu">
+                        <a 
+                            class="button tiny icon yes black merged left"
+                            onclick="
+                                '.$this->genCallAjax('ajaxUnsubscribe', "'".$serverid."'", "'".$groupid."'").' 
+                                this.onclick=null;"
+                        >'.t('Unsubscribe').'</a><a 
+                            class="button tiny icon no black merged right" 
+                            onclick="
+                                movim_toggle_display(\'#groupunsubscribe\');"
+                        >'.t('Close').'</a>
+                    </div>
+                </form>
+            </div>';
+        
+        $title = '';
+        
+        $pd = new modl\PostnDAO();
+        $posts = $pd->getNode($serverid, $groupid, 0, 20);
+        
+        $html .= $title;
+        
+        if($this->searchSubscription($serverid, $groupid))
+            $html .= $this->prepareSubmitForm($serverid, $groupid);
 
-        return $metadataview->draw('_node_metadata', true);
-    }
-    
-    function preparePostsNode($serverid, $groupid, $start) {
-        $pd = new \Modl\PostnDAO();
-        $pl = $pd->getNode($serverid, $groupid, $start+1, $this->_feedsize);
-
-        if(isset($pl)) {
-            $html = $this->preparePosts($pl);
-        } else {
-            $view = $this->tpl();
-            $html = $view->draw('_node_empty', true);
-        }
-
-        $html .= $this->prepareNext($start, $html, $pl, 'ajaxGetPostsNode', $serverid, $groupid);
+        $html .= $this->preparePosts($posts);
         
         return $html;
-    }
-
-    function ajaxGetPostsNode($serverid, $groupid, $start) {
-        $html = $this->preparePostsNode($serverid, $groupid, $start);        
-        RPC::call('movim_append', md5($serverid.$groupid), $html);
-        RPC::commit();
     }
     
     function searchSubscribed($server, $node) {
@@ -260,7 +251,7 @@ class Node extends WidgetCommon
     }
     
     function searchSubscription($server, $node) {
-        $sd = new \Modl\SubscriptionDAO();
+        $sd = new \modl\SubscriptionDAO();
         $subs = $sd->get($server, $node);
         
         if($subs != null)
@@ -269,5 +260,16 @@ class Node extends WidgetCommon
                     return true;
             }
         return false;
+    }
+
+    function build()
+    {
+    ?>
+        <div class="tabelem protect red" id="node" title="<?php echo t('Posts'); ?>">
+            <div id="<?php echo md5($_GET['s'].$_GET['n']); ?>">
+                <?php echo $this->prepareNode($_GET['s'], $_GET['n']); ?>
+            </div>
+        </div>
+    <?php
     }
 }

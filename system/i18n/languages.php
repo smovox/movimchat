@@ -76,7 +76,6 @@ function get_lang_list() {
         'ia' => "Interlingua",
         'id' => "Indonesia",
         'ie' => "Interlingue",
-        'io' => "Ido",
         'ik' => "Inupiak",
         'is' => "&#237;slenska",
         'it' => "Italiano",

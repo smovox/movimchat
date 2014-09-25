@@ -1,15 +1,13 @@
-<div class="tabelem paddedtop" title="{$c->__('page.about')}" id="about">
-    <h1><i class="fa fa-info-circle"></i> {$c->__('page.about')} </h1>
-
-    <p>{$c->__('info')}
+<div class="tabelem padded" title="{$c->t('About')}" id="about">
+    <p>Movim is an XMPP-based communication platform. All the project, except the following software and resources, is under 
         <a href="http://www.gnu.org/licenses/agpl-3.0.html">GNU Affero General Public License v3</a>.
     </p>
-    <h2>{$c->__('title.thanks')}</h2>
+    <h2>{$c->t('Thanks')}</h2>
     <dl>
-        <dt>{$c->__('title.developers')}</dt><dd><a href="http://edhelas.mov.im/">Jaussoin Timothée aka edhelas</a></dd>
+        <dt>Developers</dt><dd><a href="http://edhelas.mov.im/">Jaussoin Timothée aka edhelas</a></dd>
         <dt></dt><dd><a href="https://launchpad.net/~nodpounod">Ho Christine aka nodpounod</a></dd>
         <dt></dt><dd><a href="https://etenil.net/">Pasquet Guillaume aka Etenil</a></dd>
-        <dt>{$c->__('title.translators')}</dt><dd>Arabic - <a href="https://launchpad.net/~gharbeia">Ahmad Gharbeia أحمد غربية</a></dd>
+        <dt>Translators</dt><dd>Arabic - <a href="https://launchpad.net/~gharbeia">Ahmad Gharbeia أحمد غربية</a></dd>
         <dt></dt><dd>Brazilian - <a href="https://launchpad.net/~dnieper650">millemiglia</a></dd>
         <dt></dt><dd>Chinese - <a href="https://launchpad.net/~dudumomo">dudumomo</a></dd>
         <dt></dt><dd>Danish - <a href="https://launchpad.net/~ole-carlsen-web">Ole Carlsen</a></dd>
@@ -75,7 +73,7 @@
         </dd>
     </dl>
     
-    <h2><i class="fa fa-rocket"></i> {$c->__('title.software')}</h2>
+    <h2>{$c->t('Software')}</h2>
     <dl>
        <dt>Database Library</dt><dd>Modl - Movim DB Layer <a href="https://launchpad.net/modl">launchpad.net/modl</a> under AGPLv3</dd>
        <dt>XMPP Library</dt><dd>Moxl - Movim XMPP Library <a href="https://launchpad.net/moxl">launchpad.net/moxl</a> under AGPLv3</dd>
@@ -85,14 +83,13 @@
        <dt>Map Library</dt><dd>Leaflet <a href="http://leafletjs.com/">leafletjs.com</a> under BSD</dd>
        <dt>Markdown</dt><dd>Michel Fortin <a href="http://michelf.ca/projects/php-markdown/">michelf.ca</a> ©Michel Fortin</dd>
     </dl>
-    <h2><i class="fa fa-html5"></i> {$c->__('title.resources')}</h2>
+    <h2>{$c->t('Resources')}</h2>
     <dl>
        <dt>Icons</dt><dd>Famfamfam <a href="http://www.famfamfam.com/">www.famfamfam.com</a> under CC BY 3.0</dd>
        <dt></dt><dd>Icomoon <a href="http://keyamoon.com/">by Keyamoon</a> under CC BY 3.0</dd>
-       <dt></dt><dd>FontAwesome <a href="http://fortawesome.github.io/">by Dave Gandy</a> under CC BY 3.0</dd>
     </dl>
 
-    <h2><i class="fa fa-code"></i> {$c->__('title.api')}</h2>
+    <h2>{$c->t('API')}</h2>
     <dl>
        <dt>OpenStreetMap</dt><dd>Nominatim <a href="http://nominatim.openstreetmap.org/">nominatim.openstreetmap.org</a></dd>
        <dt>Last.fm API</dt><dd><a href="http://www.last.fm/api">www.last.fm/api</a></dd>

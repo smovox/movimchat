@@ -18,13 +18,13 @@
         <a 
             class="button color icon no" 
             onclick="movim_toggle_display('#postpreview');"
-        >{$c->__('button.close')}</a>
+        >{$c->t('Close')}</a>
     </div>
 </div>
 
 <div class="popup post" id="galleryselect" style="padding: 0;">
     <ul class="thumb">
-    {loop="$gallery"}
+    {loop="gallery"}
         <li style="background-image: url({$value.thumb});">
             <a 
                 href="#" 
@@ -47,14 +47,11 @@
         <form name="postpublish" id="postpublish">
             <tr>
                 <td>
-                    <input name="title" placeholder="{$c->__('post.title')}"/>
-                </td>
-                <td>
                     <textarea 
                         name="content" 
                         id="postpublishcontent"
                         onkeyup="movim_textarea_autoheight(this);" 
-                        placeholder="{$c->__('post.whats_new')}" ></textarea>
+                        placeholder="{$c->t("What's new ?")}" ></textarea>
                 </td>
             </tr>
             <tr id="feedsubmitrow">
@@ -67,34 +64,42 @@
                         onclick="{$publish_item}
                                 document.querySelector('#postpublish').reset();
                                 movim_textarea_autoheight(document.querySelector('#postpublishcontent'));"
-                        class="button color green">
-                        <i class="fa fa-envelope"></i> {$c->__('button.submit')}
+                        class="button icon color green icon yes">
+                        {$c->t("Submit")}
                     </a>
                     <a 
-                        class="button color alone merged left images"
+                        class="button icon color alone merged left images"
                         style="float: left;"
-                        title="{$c->__('page.gallery')}"
+                        title="{$c->t('Gallery')}"
                         onclick="
                             movim_toggle_display('#galleryselect');
                             "
-                    ><i class="fa fa-picture-o"></i></a>
+                    ></a>
                     <a 
-                        class="button color alone merged left"
+                        class="button icon color alone merged left preview"
                         style="float: left;"
-                        title="{$c->__('page.preview')}"
+                        title="{$c->t('Preview')}"
                         onclick="
                             movim_toggle_display('#postpreview');
                             {$post_preview}"
-                    ><i class="fa fa-eye"></i></a><a 
-                        class="button color alone merged" 
+                    ></a>
+
+                    <!--<a 
+                        title="Plus"
+                        href="#"
+                        id="postpublishsize"
+                        onclick="frameHeight(this, document.querySelector(\'#postpublishcontent\'));"
+                        style="float: left;"
+                        class="button color icon alone add merged"
+                    ></a>--><a 
+                        class="button color icon alone help merged" 
                         style="float: left;"
                         href="http://daringfireball.net/projects/markdown/basics"
-                        title="{$c->__('page.help')}"
                         target="_blank"
-                    ><i class="fa fa-life-ring"></i></a><a title="{$c->__('post.geolocalisation')}"
-                        onclick="setPosition(document.querySelector('#latlonpos')); showPosition(document.querySelector('#latlonpos').value);"
+                    ></a><a title="{$c->t("Geolocalisation")}"
+                        onclick="setPosition(document.querySelector('#latlonpos'));"
                         style="float: left;"
-                        class="button color alone merged right"><i class="fa fa-location-arrow"></i></a>
+                        class="button icon color icon alone geo merged right"></a>
                     <span id="postpublishlocation"></span>
 
                 </td>

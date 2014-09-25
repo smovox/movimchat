@@ -18,11 +18,9 @@
  * See COPYING for licensing information.
  */
 
-use Moxl\Xec\Action\Location\Publish;
-
 class Location extends WidgetBase
 {
-    function load()
+    function WidgetLoad()
     {
         $this->addjs('location.js');
 		$this->registerEvent('locationpublished', 'onLocationPublished');
@@ -48,12 +46,12 @@ class Location extends WidgetBase
                 'uri'           => ''//'http://www.openstreetmap.org/'.urlencode('?lat='.(string)$pos->lat.'&lon='.(string)$pos->lon.'&zoom=10')
                 );
 
-            $p = new Publish;
+            $p = new moxl\LocationPublish();
             $p->setTo($this->user->getLogin())
               ->setGeo($geo)
               ->request();
         } else {
-            Notification::appendNotification($this->__('wrong_postition'), 'error');
+            Notification::appendNotification(t('Wrong position'), 'error');
         }
     }
     
@@ -62,7 +60,8 @@ class Location extends WidgetBase
         $html = $me->getPlace();
         RPC::call('movim_fill', 'mapdata', $html);
         
-        Notification::appendNotification($this->__('updated'), 'success');
+        Notification::appendNotification(t('Location updated'), 'success');
+        RPC::call('movim_delete', 'mapdiv');
         RPC::commit();
     }
     
@@ -79,7 +78,7 @@ class Location extends WidgetBase
     {
         $submit = $this->genCallAjax('ajaxLocationPublish', "getMyPositionData()");
         
-        $cd = new \Modl\ContactDAO();
+        $cd = new modl\ContactDAO();
         $c = $cd->get($this->user->getLogin());
 
         if($c->loctimestamp) {
@@ -92,24 +91,33 @@ class Location extends WidgetBase
         $html = '';
         
         $html .= '
+            <h2>'.t('Location').'</h2>
             <div id="location">
-                <div id="mapdata" style="margin: 1em 0;">'.$data.'</div>
+                <div id="mapdata" style="margin-bottom: 10px;">'.$data.'</div>
                 <div id="mapdiv" style="width: auto; height: 250px; display: none;"></div>
                 <div class="clear"></div>
                 <a 
-                    class="button color green" 
-                    style="margin-top: 1em;"
-                    onclick="getMyPosition(); this.style.display = \'none\';">
-                    <i class="fa fa-compass"></i> '.t('Update my position').'
+                    class="button color green icon geo" 
+                    style="margin-top: 1em; display: block;"
+                    onclick="getMyPosition(); this.style.display = \'none\';">'.
+                    t('Update my position').'
                 </a>
                 <a 
                     id="mypossubmit" 
-                    style="display: none; margin-top: 1em; float: right;"
-                    class="button color green merged left" 
-                    onclick="'.$submit.' hidePositionChoice();">
-                    <i class="fa fa-check"></i> '.t('Accept').'</a>
+                    style="display: none;" 
+                    class="button color green icon yes" 
+                    onclick="'.$submit.' hidePositionChoice();">'.t('Accept').'</a><a 
+                    style="display: none; margin-top: 1em;" 
+                    id="myposrefuse" 
+                    onclick="hidePositionChoice();"
+                    class="button tiny icon alone no merged right"></a>
             </div>';
         
         return $html;
+    }
+    
+    function build()
+    {
+        echo $this->prepareProfileData();
     }
 }

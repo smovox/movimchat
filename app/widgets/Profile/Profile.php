@@ -18,16 +18,12 @@
  * See COPYING for licensing information.
  */
 
-use Moxl\Xec\Action\Presence\Chat;
-use Moxl\Xec\Action\Presence\Away;
-use Moxl\Xec\Action\Presence\DND;
-use Moxl\Xec\Action\Presence\XA;
-
 class Profile extends WidgetCommon
 {
+
     private static $status;
 
-    function load()
+    function WidgetLoad()
     {
         $this->addcss('profile.css');
         $this->addjs('profile.js');
@@ -43,8 +39,8 @@ class Profile extends WidgetCommon
     
     function onMyPresence()
     {
-        RPC::call('movim_fill', 'statussaved', '✔ '.$this->__('status.saved')); 
-        Notification::appendNotification($this->__('status.updated'), 'success');
+        RPC::call('movim_fill', 'statussaved', '✔ '.t('Saved')); 
+        Notification::appendNotification(t('Status updated'), 'success');
     }
     
     function ajaxSetStatus($status)
@@ -62,23 +58,23 @@ class Profile extends WidgetCommon
         
         switch($presence['show']) {
             case 'chat':
-                $p = new Chat;
+                $p = new moxl\PresenceChat();
                 $p->setStatus($status)->request();
                 break;
             case 'away':
-                $p = new Away;
+                $p = new moxl\PresenceAway();
                 $p->setStatus($status)->request();
                 break;
             case 'dnd':
-                $p = new DND;
+                $p = new moxl\PresenceDND();
                 $p->setStatus($status)->request();
                 break;
             case 'xa':
-                $p = new XA;
+                $p = new moxl\PresenceXA();
                 $p->setStatus($status)->request();
                 break;
             default :
-                $p = new Chat;
+                $p = new moxl\PresenceChat();
                 $p->setStatus($status)->request();
                 break;
         }
@@ -98,22 +94,27 @@ class Profile extends WidgetCommon
 
             // My avatar
             $html .= '
-            <a
-                class="avatar"
-                style="background-image: url('.$me->getPhoto('l').');"
-                href="'.Route::urlize('friend',$this->user->getLogin()).'">
+            <a href="'.Route::urlize('friend',$this->user->getLogin()).'">
+                <img src="'.$me->getPhoto('l').'"/>
             </a>';
                 
             // Contact general infos
             $html .= '
-                    <h1 class="padded" style="text-decoration: none;">'.$me->getTrueName().'</h1>';
-                    
+                    <h1 style="text-decoration: none;">'.$me->getTrueName().'</h1>';
+
+            if($this->testIsSet($me->name))
+                $html .= $me->name.' ';
+            else
+                $html .= $me->getTrueName().' ';
+                
+            if($this->testIsSet($me->url))
+                $html .= '<br /><a target="_blank" href="'.$me->url.'">'.$me->url.'</a>';
+                
             $html .= '
                 <div class="textbubble">
                     <textarea 
                         id="status" 
                         spellcheck="false"
-                        placeholder="'.$this->__('status.here').'"
                         onfocus="this.style.fontStyle=\'italic\'; this.parentNode.querySelector(\'#statussaved\').innerHTML = \'\'"
                         onblur="this.style.fontStyle=\'normal\';"
                         onkeypress="if(event.keyCode == 13) {'.$this->genCallAjax('ajaxSetStatus', 'encodeURIComponent(this.value)').'; this.blur(); return false;}"
@@ -132,5 +133,17 @@ class Profile extends WidgetCommon
         }
         
         return $html;
+    }
+    
+    function build()
+    {
+    ?>
+    
+        <div id="profile">
+            <?php 
+                echo $this->prepareVcard();
+            ?>
+        </div>
+    <?php
     }
 }

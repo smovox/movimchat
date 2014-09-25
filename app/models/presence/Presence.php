@@ -1,8 +1,8 @@
 <?php
 
-namespace Modl;
+namespace modl;
 
-class Presence extends Model {
+class Presence extends ModlModel {
     protected $id;
     
     protected $session;
@@ -23,9 +23,6 @@ class Presence extends Model {
     
     // Last Activity - XEP 0256
     protected $last;
-
-    // Current Jabber OpenPGP Usage - XEP-0027
-    protected $publickey;
     
     public function __construct() {
         $this->_struct = '
@@ -51,14 +48,18 @@ class Presence extends Model {
             "delay" : 
                 {"type":"date"},
             "last" : 
-                {"type":"int",    "size":11 },
-            "publickey" : 
-                {"type":"text"}
+                {"type":"int",    "size":11 }
         }';
         
         parent::__construct();
     }
     
+    // Validation
+    /*
+    public $_validates = array(
+        'presence_of' => array('key', 'jid', 'presence')
+        );  
+    */
     public function setPresence($stanza) {
         $jid = explode('/',(string)$stanza->attributes()->from);
         
@@ -96,18 +97,6 @@ class Presence extends Model {
             $this->value = 4;
         } else {
             $this->value = 1;
-        }
-
-        // Specific XEP
-        if($stanza->x) {
-            foreach($stanza->children() as $name => $c) {
-                $ns = $c->getNamespaces(true);
-                switch($ns['']) {
-                    case 'jabber:x:signed' :
-                        $this->publickey = (string)$c;
-                        break;
-                }
-            }
         }
         
         if($stanza->delay) {
@@ -149,10 +138,4 @@ class Presence extends Model {
         return $arr;
     }
 
-    public function isChatroom() {
-        if(filter_var($this->jid, FILTER_VALIDATE_EMAIL))
-            return false;
-        else
-            return true;
-    }
 }

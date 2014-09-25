@@ -1,25 +1,29 @@
 <span id="{$idhash}"></span>
-<article class="block" id="{$id}">
-    <div class="{$access}" title="{$flagtitle}"></div>
-    <header>
-        <a href="{$friend}">
-            {$avatar}
-        </a>
-        <span class="title">{$title}</span>
-        <span class="contact">{$contact}</span>
-        <span class="date">{$date}</span>
-    </header>
-    <section class="content {if="$spoiler != false"}spoiler{/if}" onclick="{$spoiler}">
-        {$content}
-    </section>
+<div class="post {$class}" id="{$id}">
+    <div class="{$access}" title="{$flagtitle}" style="margin-bottom:1em;"></div>
+    <a href="{$friend}">
+        {$avatar}
+    </a>
 
-    <footer>
+    <div id="{$id}bubble" class="postbubble">
+        <div class="header">
+            <span class="title">{$title}</span>
+            {$contact}
+            <span class="date">
+                {$date}
+            </span>
+            <!--{$author}-->
+        </div>
+        <div class="content">
+        {$content}<br />
+        </div>
         {$tags}
+        {$toolbox}
         {$enc}
         {$comments}
         {$place}
         {$recycle}
         {$group}
-        {$toolbox}
-    </footer>
-</article>
+    </div>  
+            
+</div>

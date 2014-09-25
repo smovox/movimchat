@@ -17,12 +17,11 @@
 
 class ContactInfo extends WidgetCommon
 {    
-    function load()
+    function WidgetLoad()
     {
-    	$this->addcss('contactinfo.css');
         $this->registerEvent('tune', 'onTune');    
     }
-
+    
     function onTune($from)
     {
         $html = $this->prepareContactInfo($from);     
@@ -31,7 +30,7 @@ class ContactInfo extends WidgetCommon
 
     function prepareContactInfo($from = false)
     {
-        $cd = new \Modl\ContactDAO();
+        $cd = new \modl\ContactDAO();
         if($from != $this->user->getLogin())
             $c = $cd->getRosterItem($from);
         else
@@ -44,24 +43,24 @@ class ContactInfo extends WidgetCommon
             if($c->mood) {
                 $moodarray = getMood();
                 
-                $html .= '<h2>'.$this->__('mood.title').'</h2>';
+                $html .= '<h2>'.t('Mood').'</h2>';
                 $mood = '';
                 foreach(unserialize($c->mood) as $m)
                     $mood .= $moodarray[$m].',';
-                $html .= $this->__('mood.im').substr($mood, 0, -1).'<br />';
+                $html .= t("I'm ").substr($mood, 0, -1).'<br />';
             }
             
             // Tune
             if($c->tuneartist || $c->tunetitle) {
                 $album = $artist = $title = $img = '';
                 
-                $html .= '<h2>'.$this->__('listen.title').'</h2>';
+                $html .= '<h2>'.t('Listening').'</h2>';
                 if($c->tuneartist)
                     $artist = $c->tuneartist. ' - ';
                 if($c->tunetitle)
                     $title = $c->tunetitle;
                 if($c->tunesource)
-                    $album = $this->__('listen.on').' '.$c->tunesource;
+                    $album = t('on').' '.$c->tunesource;
                     
                 if($c->tunesource) {
                     $l = str_replace(
@@ -74,12 +73,14 @@ class ContactInfo extends WidgetCommon
                             '&format=json'
                         );
                     
-                    $json = json_decode(requestURL($l, 2));
+                    $json = json_decode(file_get_contents($l));
                     
                     $img = $json->album->image[2]->{'#text'};
                     $url = $json->album->url;
-                    if(isset($img) && $img != '') {
+                    if(isset($img)) {
                         $img = '
+                            <br />
+                            <br />
                             <a href="'.$url.'" target="_blank">
                                 <img src="'.$img.'"/>
                             </a>';
@@ -93,7 +94,7 @@ class ContactInfo extends WidgetCommon
             if($c->delay != null 
                 && $c->delay 
                 && $c->delay != '0000-00-00 00:00:00') {
-                $html .= '<h2>'.$this->__('last.title').'</h2>';
+                $html .= '<h2>'.t('Last seen').'</h2>';
                 $html .= prepareDate(strtotime($c->delay)).'<br />';
             }
 
@@ -104,60 +105,36 @@ class ContactInfo extends WidgetCommon
                 && $c->ver) {                
                 $node = $c->node.'#'.$c->ver;
 
-                $cad = new \Modl\CapsDAO();
+                $cad = new \modl\CapsDAO();
                 $caps = $cad->get($node);
 
-                $clienttype = getClientTypes();
+                $clienttype = 
+                    array(
+                        'bot' => t('Bot'),
+                        'pc' => t('Desktop'),
+                        'phone' => t('Phone'),
+                        'handheld' => t('Phone'),
+                        'web' => t('Web'),
+                        'registered' => t('Registered')
+                        );
                         
                 if(isset($caps) && $caps->name != '' && $caps->type != '' ) {
                     $cinfos = '';
-                    if(isset($clienttype[$caps->type]))
-                        $type = ' ('.$clienttype[$caps->type].')';
-                    else
-                        $type = '';
+                    $cinfos .=  $caps->name.' ('.$clienttype[$caps->type].')<br />';
                     
-                    $cinfos .=  $caps->name.$type.'<br />';
-                    
-                    $html .='<h2>'.$this->__('client.title').'</h2>' . $cinfos;
+                    $html .='<h2>'.t('Client Informations').'</h2>' . $cinfos;
                 }
             }
-
-            $html .= '<div class="clear"></div>';
-
-            // Accounts
-            if($c->twitter && $c->twitter != '') {
-                $html .= '
-                    <a
-                        class="button color blue"
-                        target="_blank"
-                        href="https://twitter.com/'.$c->twitter.'">
-                        <i class="fa fa-twitter"></i> @'.$c->twitter.'
-                    </a>';
-            }
-            
-            if($c->skype && $c->skype != '') {
-                $html .= '
-                    <a
-                        class="button color green"
-                        target="_blank"
-                        href="callto://'.$c->skype.'">
-                        <i class="fa fa-skype"></i> '.$c->skype.'
-                    </a>';
-            }
-            
-            if($c->yahoo && $c->yahoo != '') {
-                $html .= '
-                    <a
-                        class="button color purple"
-                        target="_blank"
-                        href="ymsgr:sendIM?'.$c->yahoo.'">
-                        <i class="fa fa-yahoo"></i> '.$c->yahoo.'
-                    </a>';
-            }
-
-            $html .= '<div class="clear"></div>';
         }
         
         return $html;
+    }
+    
+    function build() {
+        ?>
+        <div id="contactinfo">
+            <?php echo $this->prepareContactInfo($_GET['f']); ?>
+        </div>  
+        <?php
     }
 }

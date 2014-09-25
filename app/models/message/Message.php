@@ -2,7 +2,7 @@
 
 namespace modl;
 
-class Message extends Model {
+class Message extends ModlModel {
     public $session;
     public $jidto;
     public $jidfrom;
@@ -14,7 +14,6 @@ class Message extends Model {
     public $subject;
     public $thread;
     public $body;
-    public $html;
 
     public $published;
     public $delivered;
@@ -37,8 +36,6 @@ class Message extends Model {
             "thread" : 
                 {"type":"string", "size":128 },
             "body" : 
-                {"type":"text"},
-            "html" : 
                 {"type":"text"},
             "published" : 
                 {"type":"date"},

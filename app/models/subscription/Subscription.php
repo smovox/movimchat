@@ -2,14 +2,13 @@
 
 namespace modl;
 
-class Subscription extends Model {    
+class Subscription extends ModlModel {    
     public $jid;
     public $server;
     public $node;
     public $subscription;
     public $subid;
     public $title;
-    public $tags;
     public $timestamp;
     public $name;
     
@@ -28,14 +27,14 @@ class Subscription extends Model {
                 {"type":"string", "size":128 },
             "title" : 
                 {"type":"string", "size":128 },
-            "tags" : 
-                {"type":"text" },
             "timestamp" : 
                 {"type":"date" }
         }';
         
         parent::__construct();
     }
+
+    
 
     function set($jid, $server, $node, $s) {
         $this->jid          = $jid;
@@ -44,7 +43,7 @@ class Subscription extends Model {
         $this->jid          = (string)$s->attributes()->jid;
         $this->subscription = (string)$s->attributes()->subscription;
         $this->subid        = (string)$s->attributes()->subid;
-        $this->tags         = serialize(array());
+        $this->timestamp    = date('Y-m-d H:i:s', rand(1111111111, 8888888888));
         
         if($this->subid = '')
             $this->subid = 'default';

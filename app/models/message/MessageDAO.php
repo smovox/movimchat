@@ -2,7 +2,7 @@
 
 namespace modl;
 
-class MessageDAO extends SQL {  
+class MessageDAO extends ModlSQL {  
     function set(Message $message) {
         $this->_sql = '
             insert into message
@@ -15,7 +15,6 @@ class MessageDAO extends SQL {
             subject,
             thread,
             body,
-            html,
             published,
             delivered)
             values(
@@ -27,7 +26,6 @@ class MessageDAO extends SQL {
                 :subject,
                 :thread,
                 :body,
-                :html,
                 :published,
                 :delivered
                 )';
@@ -43,9 +41,8 @@ class MessageDAO extends SQL {
                 'subject'   => $message->subject,
                 'thread'    => $message->thread,
                 'body'      => $message->body,
-                'html'      => $message->html,
                 'published' => $message->published,
-                'delivered' => $message->delivered
+                'delivered' =>$message->delivered
             )
         );
             
@@ -69,23 +66,6 @@ class MessageDAO extends SQL {
                 'session' => $this->_user,
                 'jidfrom' => $jid,
                 'jidto' => $jid
-            )
-        );
-            
-        return $this->run('Message');
-    }
-
-    function deleteContact($jid) {
-        $this->_sql = '
-            delete from message 
-            where jidfrom = :jidfrom
-               or jidto   = :jidto';
-
-        $this->prepare(
-            'Message',
-            array(
-                'jidfrom'   => $jid,
-                'jidto'     => $jid
             )
         );
             

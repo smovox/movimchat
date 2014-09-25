@@ -1,13 +1,11 @@
-#notification_widget {
+#notification {
     position: fixed;
     bottom: 0px;
     left: 0px;
     z-index: 5;
-
-    pointer-events: none;
 }
 
-#notification_widget .notif {
+#notification .notif {
     background-color: rgba(0, 0, 0, 0.8);
     width: 20em;
     max-width: 100%;
@@ -25,19 +23,19 @@
     background-image: url(img/success.png);
 }
 
-#notification_widget .notif.error {
+#notification .notif.error {
     background-image: url(img/error.png);
 }
 
-#notification_widget .notif.warning {
+#notification .notif.warning {
     background-image: url(img/warning.png);
 }
 
-#notification_widget .notif.info {
+#notification .notif.info {
     background-image: url(img/info.png);
 }
 
-#notification_widget .notif:hover {
+#notification .notif:hover {
     opacity: 0.4;
 }
 
@@ -72,13 +70,4 @@
       5% { opacity: 1; visibility: visible; left: 0px; }
      90% { opacity: 1; visibility: visible; left: 0px; }
     100% { opacity: 0; visibility: hidden; left: -300px; }
-}
-
-@media screen and (max-width: 1024px) {
-    #notification_widget .notif {
-        width: 100%;
-        box-sizing: border-box;
-        -webkit-box-sizing: border-box;
-        -moz-box-sizing: border-box;
-    }
 }

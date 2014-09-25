@@ -2,7 +2,7 @@
 
 namespace modl;
 
-class CapsDAO extends SQL { 
+class CapsDAO extends ModlSQL { 
     function get($node) {
         $this->_sql = '
             select * from caps

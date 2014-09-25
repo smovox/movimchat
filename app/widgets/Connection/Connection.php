@@ -15,7 +15,7 @@
 
 class Connection extends WidgetBase
 {
-    function load()
+    function WidgetLoad()
     {
         $this->addcss('connection.css');
         $this->registerEvent('connection', 'onConnection');
@@ -28,16 +28,28 @@ class Connection extends WidgetBase
     
     function onConnection($value)
     {
+        /*if($value <= 10)
+            RPC::call('movim_redirect', Route::urlize('main'));
+        else {*/
         if($value >= 10) {
             $value = floor(($value-10)/10);
-
+            
             if($value == 0)
                 RPC::call('movim_fill', 'countdown', '');
-            else {
-                RPC::call('movim_fill', 'countdown', $this->__('please_wait') . ' ' . $value);
-            }
+            else
+                RPC::call('movim_fill', 'countdown', t('Please wait ').$value);   
         } else
-            RPC::commit();
+        //}
+        RPC::commit();
+    }
+
+    function build()
+    {
+    ?>
+        <div id="connection">
+            <span id="countdown"></span>
+        </div>
+    <?php
     }
 }
 

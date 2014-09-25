@@ -43,25 +43,96 @@ time, mark, audio, video {
 /* Zeu CSS */
 
 body {
-    font-family: OpenSans-Reg, helvetica,sans-serif, Helvetica, "lucida grande",tahoma,verdana,arial,sans-serif;
+    font-family:  helvetica,sans-serif, Helvetica, "lucida grande",tahoma,verdana,arial,sans-serif;
     font-size: 14px;
     line-height: 1em;
     color: #4E4E4E;
-
-	animation: 200s infinite colorful;
-    -webkit-animation: 200s infinite colorful;
+    background-color: #32434D;
 
     margin: 0 auto;
     width: 100%;
-    padding-right: 15rem;
-    
-    background-color: #32434D;
+    max-width: 1280px;
+    padding-right: 200px;
     
     box-sizing: border-box;
     -webkit-box-sizing: border-box;
 	-moz-box-sizing: border-box;
     
     background-attachment:fixed;
+}
+
+/* We hide all the mobiles elements */
+.on_mobile {
+    display: none;
+}
+
+/* Background pattern */
+.default {
+    background-image: radial-gradient(center
+     45deg, ellipse, rgba(255,255,255, 0.6) 0%, rgba(255,255,255,0) 100%);
+    background-image: -moz-radial-gradient(center
+     45deg, ellipse, rgba(255,255,255, 0.6) 0%, rgba(255,255,255,0) 100%);
+    background-image: -webkit-radial-gradient(50% 50%, ellipse, rgba(255,255,255, 0.6), rgba(255,255,255,0) );
+    background-image: -o-radial-gradient(50% 50%, ellipse, rgba(255,255,255, 0.6), rgba(255,255,255,0) );
+    
+    background-repeat: no-repeat;
+}
+
+.argyle {
+    background-image: url(../img/back/argyle.png);
+}
+
+.paper {
+    background-image: url(../img/back/paper.png);
+}
+
+.carbon {
+    background-size:16px 16px;
+}
+
+.blueprint {
+    background-image: 
+    linear-gradient(rgba(255,255,255,.5) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(255,255,255,.5) 2px, transparent 2px),
+    linear-gradient(rgba(255,255,255,.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.2) 1px, transparent 1px);
+    background-image: 
+    -webkit-linear-gradient(rgba(255,255,255,.5) 2px, transparent 2px),
+    -webkit-linear-gradient(left, rgba(255,255,255,.5) 2px, transparent 2px),
+    -webkit-linear-gradient(rgba(255,255,255,.2) 1px, transparent 1px),
+    -webkit-linear-gradient(left, rgba(255,255,255,.2) 1px, transparent 1px);
+    background-size:100px 100px, 100px 100px, 20px 20px, 20px 20px;
+    background-position:-2px -2px, -2px -2px, -1px -1px, -1px -1px;
+}
+
+.tableclothe {
+    background-image: url(../img/back/tableclothe.png);
+}
+.cicada {
+    background-image: url(../img/back/cicada.png);
+}
+
+.stripes {
+    background-image: url(../img/back/stripes.png);
+}
+
+.stars {
+    background-image:
+    radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+    radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+    radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px),
+    radial-gradient(rgba(255,255,255,.4), rgba(255,255,255,.1) 2px, transparent 30px);
+    background-image:
+    -webkit-radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+    -webkit-radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+    -webkit-radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px),
+    -webkit-radial-gradient(rgba(255,255,255,.4), rgba(255,255,255,.1) 2px, transparent 30px);
+    background-size: 550px 550px, 350px 350px, 250px 250px, 150px 150px; 
+    background-position: 0 0, 40px 60px, 130px 270px, 70px 100px;
+}
+
+.tartan {
+    background-image: url(../img/back/tartan.png);
 }
 
 /* A simple clear element*/
@@ -126,7 +197,9 @@ h1 {
     line-height: 2.5em;
     font-size: 1.5em;
     margin: 0px;
+    padding: 0em 1em;
     vertical-align: bottom;
+    font-family: sans-serif;
 }
 
 h2 {   
@@ -148,7 +221,7 @@ h3 {
 
 p {
     text-align: justify;
-    line-height: 1.5em;
+    line-height: 1.3em;
     margin-top: 0.5em;
 }
 
@@ -176,39 +249,24 @@ ul.clean {
 
 ul.clean li {
     list-style-type: square;
-    line-height: 2em;
 }
 
 /* A default padding for some elements */
 .padded {
-    padding: 1rem;
+    padding: 1.5em;
 }
 
 .paddedtop {
-    padding: 1rem;
-    padding-top: 0;
-}
-
-.paddedbottom {
-    padding: 1rem;
-    padding-bottom: 0;
+    padding: 1.5em;
+    padding-top: 0px;
 }
 
 .paddedtopbottom {
-    padding: 0em 1rem;
+    padding: 0em 1.5em;
 }
 
 .spacetop {
-    padding-top: 1rem;
-}
-
-/* Font awesome */
-.fa {
-    margin-right: 0.25em;
-}
-
-.button.alone .fa {
-    margin-right: 0;
+    padding-top: 1.5em;
 }
 
 /* The main parts of the page */
@@ -220,8 +278,7 @@ ul.clean li {
 }
 
 #main {  
-    /*background-color: #383735;*/
-    background-color: rgba(20, 20, 20, 0.7);
+    background-color: #383735;
     box-sizing: border-box;
     -webkit-box-sizing: border-box;
 	-moz-box-sizing: border-box;
@@ -240,16 +297,16 @@ ul.clean li {
     -webkit-box-sizing: border-box;
 	-moz-box-sizing: border-box;
     float: left;
-    width: 12rem;
+    padding: 1em;
+    width: 200px;
     color: white;
-    top: 0;
+    top: 0px;
     overflow: hidden;
 }
 
-#left a:not(.button):link, 
-#left a:not(.button):visited {
+#left a:link, 
+#left a:visited {
     color: #94A6B0;
-    text-decoration: none;
 }
 
 #left ul {
@@ -266,21 +323,22 @@ ul.clean li {
     position: relative;
     top: 0px;
     overflow: hidden;
-    min-height: 40em;
+    min-height: 60em;
 }
 
 #right
 {
     display: block;
-    width: 15rem;
+    width: 200px;
     position: fixed;
-    top: 0;
-    right: 0;
+    top: 0px;
+    right: 0px;
     padding-top: 0em;
     height: 100%;
     overflow: hidden;
     pointer-events:none;
     z-index: 2;
+    background-image: url(../img/paper.png);
 }
 
 #right:after {
@@ -289,28 +347,149 @@ ul.clean li {
     content: "";
     display: block;
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 0em;
+    left: 0em;
     width: 0.7em;
     height: 100%;
 }
 
-#content > footer 
+footer 
 {
     clear: both;
     text-align: right;
-    background-color: rgba(20, 20, 20, 0.7);
+    background-color: #383735;
     line-height: 3em;
-    padding: 0 1em;
+    padding-right: 1em;
     color: white;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
-#content > footer a:link, #content > footer a:visited {
+footer a:link, footer a:visited {
     color: #BBB;
 }
+
+/* The navigation bar */
+
+nav {
+    margin: 0px;
+    padding: 0px;
+    padding-top: 0px;
+    text-decoration: none;
+    width: 100%;
+    background-color: #4C5A61;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    z-index: 2;
+}
+
+.menu {
+    max-width: 1280px;
+    width: 100%;
+    margin: 0px auto;
+    list-style-type: none;
+    height: 3em;
+    overflow: hidden;
+}
+
+.menu li {
+    float: left;
+
+}
+
+.menu li input[type=checkbox] {
+    display: none;
+}
+
+.menu li a:not(.button), .menu li label {
+    line-height: 3em;
+    display: block;
+    background-repeat: no-repeat;
+    background-position: center center;
+    height: 0px;
+    width: 0px;
+    padding: 1.5em;
+    color: transparent;
+}
+
+.menu li a.disconnect{
+    position: fixed;
+    top: 0px;
+    right: 200px;
+}
+
+.menu li:hover,
+.menu li a.disconnect:hover {
+    background-color: #46565E;
+}
+
+.menu li a.active {
+    background-color: #445157;
+}
+
+.menu li img {
+    float: left;
+    border: 0px;
+    margin-right: 10px;
+    margin-top: 1px;
+}
+.menu li:hover a, .menu li label:hover {
+    cursor: pointer;
+} 
+
+.menu li a.main, .menu li a.main.active {
+	width: 200px;
+    padding: 1.5em;
+    color: transparent;
+    background-image: url(../img/logo.png);
+    background-repeat: no-repeat;
+    background-position: center center;
+    
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+}
+
+.menu li .discover,
+.menu li .explore   { background-image: url(../img/icons/menu/globe.png); }
+.menu li .profile   { background-image: url(../img/icons/menu/user.png); }
+.menu li .conf      { background-image: url(../img/icons/menu/settings.png); }
+.menu li .help      { background-image: url(../img/icons/menu/support.png); }
+.menu li .disconnect{ background-image: url(../img/icons/menu/exit.png); }
+.menu li .down      { background-image: url(../img/icons/menu/list.png); }
+.menu li .up        { background-image: url(../img/icons/menu/upload.png); }
+.menu li .plus      { background-image: url(../img/icons/menu/plus.png); }
+.menu li .search    { background-image: url(../img/icons/menu/search.png); }
+.menu li .users, 
+.menu li .account   { background-image: url(../img/icons/menu/users.png); }
+.menu li .expand    { background-image: url(../img/icons/menu/expand.png); }
+.menu li .contract  { background-image: url(../img/icons/menu/contract.png); }
+.menu li .media     { background-image: url(../img/icons/menu/folder.png); }
+.menu li .blog      { background-image: url(../img/icons/menu/quill.png); }
+.menu li .admin     { background-image: url(../img/icons/menu/admin.png); }
+.menu li .about     { background-image: url(../img/icons/menu/info.png); }
+.menu li .news      { background-image: url(../img/icons/menu/news.png); }
+
+ul li .tabbed {
+    background-color: rgba(36, 36, 36, 1);
+    position: absolute;
+    bottom: 3em;
+    right: -100%;
+    width: 100%;
+    transition: right 0.5s ease;
+}
+
+ul li .tabbed label {
+    display: none;
+}
+
+ul li .tabbed .element {
+    min-height: 0px;
+}
+
+ul li input[type=checkbox]:checked ~ .tabbed {
+    right: 0%;
+}
+
 
 /* Warning */
 
@@ -335,8 +514,8 @@ ul.clean li {
                         transparent 75%, transparent);
     
     color: #fff;
-    padding: 0.7em;
-    line-height: 1.5em;
+    padding: 1em;
+
     margin: 0.5em 0px;
     clear: both;
     
@@ -368,6 +547,32 @@ ul.clean li {
     cursor: pointer;
 }
 
+/* Filters */
+
+.filters {
+	float: right;
+    margin: 0px;
+    padding: 0px;
+    /*font-size: 1.2em;*/
+    margin-right: 1.5em;
+}
+
+.filters li {
+	display: inline-block;
+    padding: 0em 1.5em;
+    line-height: 2em;
+}
+
+.filters li:hover {
+    color: #333;
+	cursor: pointer;
+}
+
+.filters li.on {
+    font-weight: bold;
+    color: #333;
+}
+
 /* Table */
 table thead {
     font-weight: bold;
@@ -394,54 +599,19 @@ ul.list {
 
 ul.list li {
     border-bottom: 1px solid #EEE;
-    clear: both;
-    padding: 0 0.5em;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-height: 3em;
 }
 
 ul.list li:last-child {
     border-bottom: 0px;
 }
 
-ul.list li.title {
-    padding: 1em 0;
-    border-bottom: 1px solid #CCC;
-    margin-top: -0.5em;
-}
-
-ul.list li.title a.action {
-    padding: 0;
-    padding-right: 1em;
-    line-height: 1em;
-}
-
 ul.list li a {
-    padding: 1em 0em;
-    text-decoration: none;
+    padding: 0.7em;
     display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-height: 3em;
-}
-
-ul.list li a span.content {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: block;
-    float: left;
-    white-space: nowrap;
-    max-width: 40%;
-    text-decoration: underline;
 }
 
 ul.list li a.action {
     float: right;
-    padding: 0.4em;
-    line-height: 2em;
 }
 
 ul.list li a.action:hover {
@@ -457,29 +627,10 @@ ul.list li span.tag {
     min-width: 3em;
     border-radius: 2px;
     text-align: center;
-    line-height: 2.2em;
+    line-height: 1.8em;
     font-size: 0.8em;
     float: right;
-    margin-top: -0.5em;
-}
-
-ul.list li img {
-    float: left;
-    margin-right: 1em;
-    margin-top: 0.5em;
-    max-height: 2em;
-}
-
-ul.list li span.desc {
-    margin-left: 1em;
-    height: 1.2em;
-    font-size: 0.9em;
-    display: inline-block;
-    color: gray;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-decoration: none;
-    width:  30%;
+    margin-top: -0.3em;
 }
 
 ul.list li span.tag.red { background-color: #D92727; }
@@ -496,7 +647,7 @@ ul.thumb {
 
 ul.thumb li {
     background-size: 100% auto;
-    width: 20%;
+    width: 25%;
     float: left;
     position: relative;
     background-repeat: no-repeat;
@@ -529,15 +680,12 @@ dl dt {
 
 dl dd {
     text-align: left;
-    width: 74%;
+    width: 75%;
 }
 
 /* Breadcrumb */
 .breadcrumb {
     height: 3em;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .breadcrumb > a {
@@ -551,7 +699,7 @@ dl dd {
 }
 
 .breadcrumb > a:first-child {
-    padding-left: 1em;
+    padding-left: 1.5em;
 }
 
 .breadcrumb > a:not(:first-child):after {
@@ -631,17 +779,3 @@ dl dd {
 .popup .element label {
     color: white;
 }
-
-/* Placeholder */
-.placeholder {
-    text-align: center;
-    font-size: 1.2em;
-    max-width: 500px;
-    margin: 0 auto;
-}
-
-.placeholder p {
-    text-align: center;
-}
-
-

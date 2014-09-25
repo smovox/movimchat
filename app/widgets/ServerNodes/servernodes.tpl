@@ -1,22 +1,20 @@
 <div class="breadcrumb protect red ">
-    <a href="{$c->route('explore')}">
-        <i class="fa fa-globe"></i> {$c->__('page.explore')}
-    </a>
+    <a href="{$c->route('explore')}">{$c->t('Explore')}</a>
     <a href="{$c->route('server', $_GET['s'])}">
-        <i class="fa fa-sitemap"></i> {$_GET['s']}
+        {$_GET['s']}
     </a>
-    <a>{$c->__('topics')}</a>
+    <a>{$c->t('Topics')}</a>
 </div> 
-<div class="posthead paddedtopbottom" id="servernodeshead">
+<div class="posthead " id="servernodeshead">
     <a
         href="#"
         onclick="{$get_nodes}; 
             this.className='button icon loading color orange'; this.onclick=null;"
-        class="button color">
-        <i class="fa fa-refresh"></i> {$c->__('button.refresh')}
+        class="button icon refresh color">
+        {$c->t('Refresh')}
     </a>
 </div>
-<div id="servernodes" class="tabelem paddedtop" title="{$c->__('page.server')}">
+<div id="servernodes" class="tabelem paddedtop" title="{$c->t('Server')}">
     <div id="newGroupForm"></div>
     <div id="servernodeslist">
         {$server}

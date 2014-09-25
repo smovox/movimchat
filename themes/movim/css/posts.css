@@ -1,258 +1,106 @@
 /* CSS of messages (Wall, Feed, News...) */
-article {
-    overflow: hidden;
-}
-
-article img {
-    max-width: 100%;
-}
-
-article:not(.comment) > *:not(footer) {
-    background-color: white;
-}
-
-article header {
-    padding-bottom: 0;
-}
-
-article header img {
-    float: left;
-    width: 4em;
-    margin-right: 1em;
-}
-
-article header span {
-    display: inline-block;
-    line-height: 1.5em;
-}
-
-article header span.date {
-    color: #777;
-}
-
-article header span.title {
-    padding-left: 0;
-    display: block;
-    font-size: 1.5em;
-    line-height: 1.5em;
-
-    white-space: nowrap;  
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-article section {
-    padding: 1em 0;
-}
-
-article footer {
-    border-bottom: 1px solid #D4D4D4;
-    border-left: 1px solid #F1F1F1;
-    border-right: 1px solid #EEE;
-    border-top: 1px solid #F2F2F2;
-    background-color: #F5F7FA;
-}
-
-article footer .comments {
-    padding: 0.5em;
-}
-
-article footer:after {
-    content: "";
-    clear: both;
-    display: block;
-}
-
-/* Spoiler */
-
-article .spoiler > * {
-    opacity: 0;
-}
-
-article .spoiler.show > * {
-    opacity: 1;
-}
-
-article .spoiler:before {
-    content: "Spoiler +";
-    padding: 0.5em;
-    margin: 0.5em 0;
-    color: #777;
-    border-bottom: 1px solid #BBB;
-    display: block;
-}
-
-article .spoiler.show:before {
-    content: "Spoiler -";
-}
-
-article .spoiler:hover {
-    cursor: pointer;
-}
-
-article.comment > * {
-    border-radius: 0;
-}
-/*
-article.comment:nth-child(odd) header,
-article.comment:nth-child(odd) section {
-    background-color: #F5F7FA;
-    line-height: 1.5em;
-}*/
-
-article.comment header img {
-    width: 2em;
-}
-
-article.comment header span.date {
-    display: inline-block;
-}
 
 .posthead {
     display: block;
     width: 100%;
-
+    padding: 1em 1.5em;
+    padding-top: 0;
+    
     box-sizing: border-box;
     -webkit-box-sizing: border-box;
 	-moz-box-sizing: border-box;
 }
 
-.older {
-	text-align: center;
-	cursor: pointer;
-    border-radius: 0.1em;
-    color: white;
-    line-height: 4em;
-    background-color: #4C5A61;
-    margin-bottom: 1em;
-}
-
-.older:hover {
-    box-shadow: 0 0.3em 0em rgba(0, 0, 0, 0.2);
-}
-
-/* Comment the article */
-
-.getcomments,
-.addcomment {
-    line-height: 1.7em;
-}
-
-.getcomments:hover,
-.addcomment:hover {
-    cursor: pointer;
-}
-
-article table#commentsubmit {
-    border: 1px solid #DDD;
-    border-spacing: 0px;
-    background-color: white;
-    width: 100%;
-    border: 1px solid #DDD;
-    display: none;
-}
-
-article table#commentsubmit td {
-    width: 100%;
-    padding: 0px;
-}
-
-article table#commentsubmit textarea {
-    border: 0px;
-    width: 100%;
-    resize: none;
-    padding: 0px;
-    height: 1.5em;
-}
-
-article table#commentsubmit .commentsubmitrow {
-    background-color: #F5F7FA;
+.post:after, .posthead:after {
+    content: ""; /* Important, sinon l'élément n'est pas généré. */
     display: block;
+    clear: both;
 }
 
-article table#commentsubmit .commentsubmitrow td {
-    height: rgba(0, 0, 0, 0.5);
+.post {
+    width: auto;
+    padding: 1em 1.5em;
+    border-bottom: 1px solid #DDD;
+    min-height: 4em;
+    padding-top: 1.5em;
+    clear: both;
 }
 
-.metadata p {
-    font-style:italic;
+.post .header {
+    display: block;
+    overflow: auto;
+    overflow-y: hidden;
 }
 
-.metadata h1 {
-    line-height: 2em;
-    display: inline-block;
-    padding-right: 0;
+.post .content {
+    line-height: 1.3em;
+    padding: 0em;
+    padding-bottom: 1em;
+    word-wrap: break-word;
+    overflow: hidden;
+}
+
+.post .postbubble {
+    width: 92%;
+    margin-left: 5em;
+    position: relative;
+}
+
+.post .postbubble.profile {
+    padding-top: 0.5em;
+}
+
+.post .postbubble.profile .content {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    line-height: 2em;
 }
 
-.metadata span {
-    display: inline-block;
-    line-height: 2.7em;
+.post:last-child {
+    border-bottom: 0px;
 }
 
-.metadata span.key {
-    margin-left: 1em;
-    font-weight: bold;
-}
-
-article p.summary {
+.post p.summary {
+    /*margin-bottom: 1em;*/
     font-style:italic;
 }
 
-/* Enclosures */
-article .enclosures {
+.post .enclosure {
+    border-top: 1px solid #DDD;
+    padding: 0.5em 0em 1em;
     line-height: 1em;
+    margin-top: 1em;
     box-sizing: border-box;
     -webkit-box-sizing: border-box;
 	-moz-box-sizing: border-box;
     clear: both;
-    padding: 0.5em;
 }
 
-article .enclosures .enclosure,
-article .enclosures .alternate {
-    line-height: 2em;
-    display: block;
-    white-space: nowrap;
+.post .header span {
+    font-weight: bold;
     overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-article .enclosures .alternate img,
-article .enclosures .enclosure:before {
-    width: 16px;
-    height: 16px;
+    padding-right: 0.5em;
+    line-height: 2em;
     display: inline-block;
-    background-size: 16px 16px;
-    margin-bottom: -0.2em;
-    margin-right: 0.5em;
 }
 
-article .enclosures .enclosure:before {
-    content: '';
-    background-image: url(../img/icons/gray/file.svg);
+.post span.title {
+    padding-left: 0px;
+    display: block;
+    float: left;
 }
 
-article .enclosures .enclosure[type='application/x-bittorrent']:before {
-    background-image: url(../img/icons/gray/file-xml.svg);
+.post span a:hover {
+    text-decoration: underline;
 }
 
-article .enclosures .enclosure[type='image/jpeg']:before,
-article .enclosures .enclosure[type='image/png']:before,
-article .enclosures .enclosure[type='image/jpg']:before {
-    content: none;
+.post span.date, .post span.asv {
+    font-weight: normal;
+    color: #777;
 }
 
-article .enclosures .enclosure[type='image/jpeg'] img,
-article .enclosures .enclosure[type='image/png']  img
-article .enclosures .enclosure[type='image/jpg']  img{
-    max-height: 15em;
-}
-
-/* Others usefull elements */
-article span.tag {
+.post span.tag {
     font-weight: normal;
 
     margin-right: 0.5em;
@@ -263,46 +111,156 @@ article span.tag {
     float: left;
 }
 
-article span.place,
-article span.recycle,
-article span.group {
+.post span.tag:first-child {
+    display: block;
+}
+
+.post span.delete {
+    font-weight: normal;
+    margin-left: 1em;
+}
+
+.post span.delete:hover {
+	cursor: pointer;
+}
+
+.post span.place, .post span.recycle, .post span.group {
     display: inline-block;
     padding-left: 2em;
-    
     font-weight: normal;
+    margin-top: 0.5em;
     float: right;
     margin-left: 1em;
     padding-right: 0.5em;
-    line-height: 3em;
+    line-height: 2em;
     max-width: 300px;
-
-    background-size: 16px 16px;
-    background-repeat: no-repeat;
-    background-position: 0 1em;
-    
     white-space: nowrap;  
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-article span.place {
-    background-image: url(../img/icons/gray/earth.svg);
+.post span.place {
+    background: url(../img/icons/place.png) 0px 0.5em no-repeat;
 }
 
-article span.recycle {
-    background-image: url(../img/icons/gray/loop.svg);
+.post span.recycle {
+    background: url(../img/icons/recycle.png) 0px 0.5em no-repeat;
 }
 
-article span.group {
-    background-image: url(../img/icons/gray/users.svg);
+.post span.group {
+    background: url(../img/icons/users.png) 0px 0.5em no-repeat;
 }
 
-article .content i, article .content em { font-style: italic; }
-article .content b, article .content strong { font-weight: bold; }
-article .content u, article .content a { text-decoration: underline; }
+.post .comments {
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.1);
+    clear: both;
+}
 
-article .content img,
-article .content video {
+.post .comments:hover {
+    cursor: pointer;
+}
+
+.post .comments .comment {
+    line-height: 2em;
+    overflow: hidden;
+	width: auto;
+}
+
+.post .comments .comment:nth-child(2n) {
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+.post .getcomments {
+    background-repeat: no-repeat;
+    background-position: 0.5em center;
+}
+
+.post .getcomments:before {
+    padding: 1em;
+    background-color: #FC8F12;
+}
+
+.post .addcomment:before {
+    padding: 1em;
+    background-color: #6FCC43;
+}
+
+.post .avatar {
+	width: 4em;
+	height: 4em;
+	margin-left: 0px;
+	display: block;
+	float: left;
+    border-radius: 0.1em;
+}
+
+.post .avatar.tiny {
+    width: 2em;
+    margin-right: 1em;
+    height: 2em;
+}
+
+.post .content.tiny {
+    margin: 0px;
+    padding: 0px;
+    margin-right: 0.5em;
+    margin-left: 3em;
+    margin-bottom: 0.5em;
+}
+
+.post .author {
+    float: right;
+    font-weight: normal;
+    padding: 0.5em 1em;
+    margin-bottom: 0.5em;
+}
+
+.post .author span {
+    font-weight: bold;
+    padding-right: 0;
+    line-height: 1em;
+    display: inline;
+}
+
+.post .content i, .post .content em { font-style: italic; }
+.post .content b, .post .content strong { font-weight: bold; }
+.post .content u, .post .content a { text-decoration: underline; }
+
+.post a.imglink {
+    display: inline-block;
+    max-width: 100%;
+    margin-right: 0.5em;
+    margin-top: 0.5em;
+    height: 0px;
+}
+
+.post .enclosure a.imglink {
+    display: inline-block;
+    height: auto;
+    width: auto;
+}
+
+.post a.imglink img {
+    max-height: 400px;
+    width: 100%;
+}
+
+.post .enclosure a.imglink img {
+    max-height: 200px;
+    max-width: 100%;
+    width: auto;
+    margin-bottom: -0.2em;
+}
+
+.post .enclosure a.imglink img.icon {
+    max-height: 24px;
+    margin-right: 0.5em;
+    min-width: 16px;
+    min-height: 16px;
+}
+
+.post .content img, .post .content video {
     max-width: 100%;
     width: auto;
     height: auto;
@@ -310,44 +268,83 @@ article .content video {
     margin-right: 1em;
 }
 
-article .content img.smiley {
+.post .content img.smiley {
     margin: 0px;
     padding: 0px;
     border: none;
 }
 
-article .content h1,
-article .content h2,
-article .content h3,
-article .content h4 {
-    margin-left: 0;
-    padding-left: 0;
+.post .content p:first-child {
+    /*margin-right: 3em;*/
 }
 
-article .content h3 {
+.post .content h1, .post .content h2, .post .content h3, .post .content h4 {
+    margin-left: 0px;
+    padding-left: 0px;
+}
+
+.post .content h3 {
     color: #333;
     line-height: 2em;
     font-size: 1.1em;
 }
 
-article .content ul,
-article .content ol {
+.post .content ul, .post .content ol {
     margin-left: 2em;
 }
 
-article .content ul li,
-article .content ol li{
-    line-height: 1.5em;
+.post .older {
+	text-align: center;
+	min-height: 0px;
+	cursor: pointer;
+    border-radius: 0.1em;
+    color: white;
+    line-height: 4em;
+    background-color: #4C5A61;
 }
 
-article .tools {
-    padding: 1em;
+.post .older:hover {
+    box-shadow: 0 0.3em 0em rgba(0, 0, 0, 0.2);
+}
+
+.post table#commentsubmit {
+    border-spacing: 0px;
+    background-color: white;
+    width: 100%;
+    display: none;
+}
+
+.post table#commentsubmit td {
+    width: 100%;
+    padding: 0px;
+}
+
+.post table#commentsubmit textarea {
+    border: 0px;
+    width: 100%;
+    resize: none;
+    padding: 0px;
+    height: 1.5em;
+}
+
+.post table#commentsubmit .commentsubmitrow {
+    background-color: #F3F3F3;
+    display: block;
+}
+
+.post table#commentsubmit .commentsubmitrow td {
+    height: rgba(0, 0, 0, 0.5);
+}
+
+.post .tools {
+    border-top: 1px solid #EEE;
+    padding: 0.5em 1em;
     position: relative;
     line-height: 1.5em;
     clear: both;
 }
 
-article .tools a:hover {
+.post .tools a:hover {
     cursor: pointer;
     text-decoration: underline;
 }

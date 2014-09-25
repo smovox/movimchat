@@ -18,22 +18,13 @@
  * See COPYING for licensing information.
  */
 
-use Moxl\Xec\Action\Pubsub\GetSubscriptions;
-use Moxl\Xec\Action\Pubsub\SetSubscriptions;
-
 class NodeSubscriptions extends WidgetBase
 {
-    function load() {
+
+    function WidgetLoad()
+    {
         $this->registerEvent('pubsubsubscriptions', 'onSubscriptionsList');
         $this->registerEvent('pubsubsubscriptionsssubmited', 'onSubmit');
-    }
-    
-    function display() {
-        $this->view->assign('pepfilter', !filter_var($_GET['s'], FILTER_VALIDATE_EMAIL));
-        $this->view->assign('getsubscriptions', 
-            $this->genCallAjax('ajaxGetSubscriptions', 
-                "'".$_GET['s']."'", 
-                "'".$_GET['n']."'"));
     }
     
     function prepareList($list) { //0:data 1:server 2:node
@@ -62,10 +53,11 @@ class NodeSubscriptions extends WidgetBase
             <hr />
             <br />
             <a 
-                class="button color green oppose" 
+                class="button color green icon yes" 
+                style="float: right;"
                 onclick="'.$ok.'">
-                <i class="fa fa-check"></i> '.__('button.validate').'
-            </a></form><div class="clear"></div>';
+                '.t('Validate').'
+            </a></form>';
         return $html;
     }
     
@@ -81,7 +73,7 @@ class NodeSubscriptions extends WidgetBase
     }
     
     function ajaxChangeSubscriptions($server, $node, $data){
-        $r = new SetSubscriptions;
+        $r = new moxl\PubsubSetSubscriptions();
         $r->setNode($node)
           ->setTo($server)
           ->setData($data)
@@ -89,10 +81,31 @@ class NodeSubscriptions extends WidgetBase
     }
     
     function ajaxGetSubscriptions($server, $node){
-        $r = new GetSubscriptions;
+        $r = new moxl\PubsubGetSubscriptions();
         $r->setTo($server)
           ->setNode($node)
           ->request();
+    }
+    
+    function build()
+    {
+        // A little filter to hide the widget if we load a PEP node
+        if(!filter_var($_GET['s'], FILTER_VALIDATE_EMAIL)) {
+        ?>
+        <div id="subscriptions" class="tabelem" title="<?php echo t('Manage your subscriptions'); ?>">
+            <h1><?php echo t('Manage the subscriptions'); ?></h1>
+            <div class="posthead">
+                <a 
+                    class="button icon users color green" 
+                    onclick="<?php echo $this->genCallAjax('ajaxGetSubscriptions', "'".$_GET['s']."'", "'".$_GET['n']."'"); ?> this.parentNode.style.display = 'none'">
+                        <?php echo t("Get the subscriptions");?>
+                </a>
+            </div>
+            
+            <div id="subscriptionslist" class="paddedtop"></div>
+        </div>
+        <?php
+        }
     }
 }
 

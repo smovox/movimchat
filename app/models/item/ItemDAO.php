@@ -2,15 +2,12 @@
 
 namespace modl;
 
-class ItemDAO extends SQL { 
+class ItemDAO extends ModlSQL { 
     function set(Item $item) {
         $this->_sql = '
             update item
             set name   = :name,
-                creator = :creator,
-                created = :created,
-                updated = :updated,
-                description = :description
+                updated = :updated
             where server = :server
                 and jid  = :jid
                 and node = :node';
@@ -18,14 +15,11 @@ class ItemDAO extends SQL {
         $this->prepare(
             'Item', 
             array(
-                'name'          => $item->name,
-                'created'       => $item->created,
-                'updated'       => $item->updated,
-                'server'        => $item->server,
-                'jid'           => $item->jid,
-                'node'          => $item->node,
-                'creator'       => $item->creator,
-                'description'   => $item->description
+                'name'   => $item->name,
+                'updated'=> $item->updated,
+                'server' => $item->server,
+                'jid'    => $item->jid,
+                'node'   => $item->node
             )
         );
         
@@ -35,36 +29,27 @@ class ItemDAO extends SQL {
             $this->_sql = '
                 insert into item
                 (server,
-                creator,
                 node,
                 jid,
                 name,
-                created,
-                updated,
-                description
+                updated
                 )
                 values(
                     :server,
-                    :creator,
                     :node,
                     :jid,
                     :name,
-                    :created,
-                    :updated,
-                    :description
+                    :updated
                     )';
             
             $this->prepare(
                 'Item', 
                 array(
-                    'name'          => $item->name,
-                    'creator'       => $item->creator,
-                    'created'       => $item->created,
-                    'updated'       => $item->updated,
-                    'server'        => $item->server,
-                    'jid'           => $item->jid,
-                    'node'          => $item->node,
-                    'description'   => $item->description
+                    'name'   => $item->name,
+                    'updated'=> $item->updated,
+                    'server' => $item->server,
+                    'jid'    => $item->jid,
+                    'node'   => $item->node
                 )
             );
             
@@ -84,48 +69,6 @@ class ItemDAO extends SQL {
             'Item',
             array(
                 'node' => 'urn:xmpp:microblog:0:comments%'
-            )
-        );
-            
-        return $this->run('Server'); 
-    }
-    
-    function getConferenceServers() {
-        $this->_sql = '
-            select server, count(node) as number 
-            from item
-            where node not like :node
-            and node = :name
-            group by server
-            order by number desc';
-            
-        $this->prepare(
-            'Item',
-            array(
-                'node' => 'urn:xmpp:microblog:0:comments%',
-                // It's a hack to affect an empty string
-                'name' => ''
-            )
-        );
-            
-        return $this->run('Server'); 
-    }
-    
-    function getGroupServers() {
-        $this->_sql = '
-            select server, count(node) as number 
-            from item
-            where node not like :node
-            and node != :name
-            group by server
-            order by number desc';
-            
-        $this->prepare(
-            'Item',
-            array(
-                'node' => 'urn:xmpp:microblog:0:comments%',
-                // Little hack here too
-                'name' => ''
             )
         );
             
@@ -154,29 +97,6 @@ class ItemDAO extends SQL {
                 // Dirty hack, using node param to inject the session key
                 'node' => $this->_user,
                 'server' => $server
-            )
-        );
-            
-        return $this->run('Item'); 
-    }
-
-    function getUpdatedItems($limitf = false, $limitr = false) {
-        $this->_sql = '
-            select * from item natural join (
-                select distinct node, max(updated) as num from postn
-                where node not like :node
-                group by node
-                order by node) as post
-                order by num desc
-            ';
-
-        if($limitr) 
-            $this->_sql = $this->_sql.' limit '.$limitr.' offset '.$limitf;
-            
-        $this->prepare(
-            'Item',
-            array(
-                'node'      => 'urn:xmpp:microblog%'
             )
         );
             

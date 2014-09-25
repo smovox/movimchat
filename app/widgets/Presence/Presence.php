@@ -18,16 +18,10 @@
  * See COPYING for licensing information.
  */
 
-use Moxl\Xec\Action\Presence\Chat;
-use Moxl\Xec\Action\Presence\Away;
-use Moxl\Xec\Action\Presence\DND;
-use Moxl\Xec\Action\Presence\XA;
-use Moxl\Xec\Action\Presence\Unavaiable;
-
 class Presence extends WidgetBase
 {
     
-    function load()
+    function WidgetLoad()
     {
         $this->addcss('presence.css');
         $this->registerEvent('mypresence', 'onMyPresence');
@@ -62,19 +56,19 @@ class Presence extends WidgetBase
         
         switch($show) {
             case 'chat':
-                $p = new Chat;
+                $p = new moxl\PresenceChat();
                 $p->setStatus($presence['status'])->request();
                 break;
             case 'away':
-                $p = new Away;
+                $p = new moxl\PresenceAway();
                 $p->setStatus($presence['status'])->request();
                 break;
             case 'dnd':
-                $p = new DND;
+                $p = new moxl\PresenceDND();
                 $p->setStatus($presence['status'])->request();
                 break;
             case 'xa':
-                $p = new XA;
+                $p = new moxl\PresenceXA();
                 $p->setStatus($presence['status'])->request();
                 break;
         }
@@ -82,10 +76,10 @@ class Presence extends WidgetBase
     
     function ajaxLogout()
     {
-        $p = new Unavaiable;
-        $p->setType('terminate')
-          ->request();
-
+        $p = new moxl\PresenceUnavaiable();
+        $p->request();
+        //$user = new User();
+        //$user->desauth();
         RPC::call('movim_redirect', Route::urlize('disconnect')); 
         RPC::commit();
     }
@@ -95,23 +89,49 @@ class Presence extends WidgetBase
         $txt = getPresences();
         $txts = getPresencesTxt();
     
-        $session = \Sessionx::start();
+        global $session;
         
-        $pd = new \Modl\PresenceDAO();
-        $p = $pd->getPresence($this->user->getLogin(), $session->ressource);
-       
-        $presencetpl = $this->tpl();
-        $presencetpl->assign('p', $p);
-        $presencetpl->assign('txt', $txt);
-        $presencetpl->assign('txts', $txts);
-        $presencetpl->assign('callchat',    $this->genCallAjax('ajaxSetStatus', "'chat'"));
-        $presencetpl->assign('callaway',    $this->genCallAjax('ajaxSetStatus', "'away'"));
-        $presencetpl->assign('calldnd',     $this->genCallAjax('ajaxSetStatus', "'dnd'"));
-        $presencetpl->assign('callxa',      $this->genCallAjax('ajaxSetStatus', "'xa'"));
-        $presencetpl->assign('calllogout',  $this->genCallAjax('ajaxLogout'));
-        $html = $presencetpl->draw('_presence_list', true);
+        $pd = new \modl\PresenceDAO();
+        $p = $pd->getPresence($this->user->getLogin(), $session['ressource']);
 
+        if($p)
+            $html = '
+                <div 
+                    id="logouttab" 
+                    class="'.$txts[$p->value].'"
+                    onclick="movim_toggle_class(\'#logoutlist\', \'show\');">'.
+                    $txt[$p->value].'
+                </div>';
+        else
+            $html = '
+                <div 
+                    id="logouttab" 
+                    class="'.$txts[1].'"
+                    onclick="movim_toggle_class(\'#logoutlist\', \'show\');">'.
+                    $txt[1].'
+                </div>';
+                
+        $html .= '
+            <div id="logoutlist">
+                <a onclick="'.$this->genCallAjax('ajaxSetStatus', "'chat'").'; movim_toggle_class(\'#logoutlist\', \'show\');" class="online">'.$txt[1].'</a>
+                <a onclick="'.$this->genCallAjax('ajaxSetStatus', "'away'").'; movim_toggle_class(\'#logoutlist\', \'show\');" class="away">'.$txt[2].'</a>
+                <a onclick="'.$this->genCallAjax('ajaxSetStatus', "'dnd'").';  movim_toggle_class(\'#logoutlist\', \'show\');" class="dnd">'.$txt[3].'</a>
+                <a onclick="'.$this->genCallAjax('ajaxSetStatus', "'xa'").';   movim_toggle_class(\'#logoutlist\', \'show\');" class="xa">'.$txt[4].'</a>
+                <a onclick="'.$this->genCallAjax('ajaxLogout').';              movim_toggle_class(\'#logoutlist\', \'show\');" class="disconnect">'.t('Disconnect').'</a>
+            </div>
+                ';
+        //href="'.Route::urlize('disconnect').'"
+        
         return $html;
+    }
+
+    function build()
+    {
+        ?>
+        <div id="logout">
+            <?php echo $this->preparePresence(); ?>
+        </div>
+        <?php
     }
 }
 

@@ -1,19 +1,36 @@
 <?php
 if (!defined('DOCUMENT_ROOT')) die('Access denied');
 
-require 'vendor/autoload.php';
-
-use Monolog\Logger;
-use Monolog\Handler\SyslogHandler;
+/**
+ * First thing, define autoloader
+ * @param string $className
+ * @return boolean
+ */
+function __autoload($className)
+{
+    $className = ltrim($className, '\\');
+    $fileName  = DOCUMENT_ROOT;
+    $namespace = '';
+    if ($lastNsPos = strrpos($className, '\\')) {
+        $namespace = substr($className, 0, $lastNsPos);
+        $className = substr($className, $lastNsPos + 1);
+        $fileName  = str_replace('\\', DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
+    }
+    $fileName .= '/'.str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
+    if (file_exists($fileName)) {
+        require_once( $fileName);
+        return true;
+    } else  {
+        return false;
+    }
+}
 
 /**
  * Error Handler...
  */
-function systemErrorHandler($errno, $errstr, $errfile, $errline, $errcontext = null) 
+function systemErrorHandler ( $errno , $errstr , $errfile ,  $errline , $errcontext=null ) 
 {
-    $log = new Logger('movim');
-    $log->pushHandler(new SyslogHandler('movim'));
-    $log->addError($errstr);
+    \system\Logs\Logger::addLog( $errstr,$errno,'system',$errfile,$errline);
     return false;
 }
 
@@ -22,29 +39,28 @@ function systemErrorHandler($errno, $errstr, $errfile, $errline, $errcontext = n
  */
 class Bootstrap {
     function boot() {
-        //define all needed constants
-        $this->setContants();
-        
         mb_internal_encoding("UTF-8");
 
         //First thing to do, define error management (in case of error forward)
         $this->setLogs();
-        
+        //define all needed constants
+        $this->setContants();
         //Check if vital system need is OK
         $this->checkSystem();
+        
 
         $this->setBrowserSupport();
         
         $this->loadSystem();
         $this->loadCommonLibraries();
         $this->loadDispatcher();
-        $this->loadHelpers();
+        
+        $this->setTimezone();
         
         $loadmodlsuccess = $this->loadModl();
 
-        $this->setTimezone();
-        $this->setLogLevel();
-
+        $this->loadMoxl();
+        
         if($loadmodlsuccess) {
             $this->startingSession();
         } else {
@@ -99,7 +115,6 @@ class Bootstrap {
         define('APP_NAME',      'movim');
         define('APP_VERSION',   $this->getVersion());
         define('BASE_URI',      $this->getBaseUri());
-        define('CACHE_URI',     $this->getBaseUri() . 'cache/');
         
         define('THEMES_PATH',   DOCUMENT_ROOT . '/themes/');
         define('USERS_PATH',    DOCUMENT_ROOT . '/users/');
@@ -108,13 +123,6 @@ class Bootstrap {
         define('LIB_PATH',      DOCUMENT_ROOT . '/lib/');
         define('LOCALES_PATH',  DOCUMENT_ROOT . '/locales/');
         define('CACHE_PATH',    DOCUMENT_ROOT . '/cache/');
-        define('LOG_PATH',      DOCUMENT_ROOT . '/log/');
-        
-        define('VIEWS_PATH',    DOCUMENT_ROOT . '/app/views/');
-        define('HELPERS_PATH',  DOCUMENT_ROOT . '/app/helpers/');
-        define('WIDGETS_PATH',  DOCUMENT_ROOT . '/app/widgets/');
-        
-        define('MOVIM_API',     'https://api.movim.eu/');
         
         if (!defined('DOCTYPE')) {
             define('DOCTYPE','text/html');
@@ -129,8 +137,7 @@ class Bootstrap {
     }
     
     private function getBaseUri() {
-        $dirname = dirname($_SERVER['PHP_SELF']);
-        $path = (($dirname == DIRECTORY_SEPARATOR) ? '' : $dirname).'/';
+        $path = dirname($_SERVER['PHP_SELF']).'/';
         // Determining the protocol to use.
         $uri = "http://";
         if((
@@ -141,7 +148,7 @@ class Bootstrap {
 
         if($path == "") {
             $uri .= $_SERVER['HTTP_HOST'] ;
-        } elseif(isset($_SERVER['HTTP_HOST'])) {
+        } else {
             $uri .= str_replace('//', '/', $_SERVER['HTTP_HOST'] . $path);
         }
 
@@ -155,7 +162,6 @@ class Bootstrap {
         require_once(SYSTEM_PATH . "/i18n/i18n.php");
 
         require_once(SYSTEM_PATH . "Session.php");
-        require_once(SYSTEM_PATH . "Sessionx.php");
         require_once(SYSTEM_PATH . "Utils.php");
         require_once(SYSTEM_PATH . "UtilsPicture.php");
         require_once(SYSTEM_PATH . "Cache.php");
@@ -163,35 +169,28 @@ class Bootstrap {
         require_once(SYSTEM_PATH . "MovimException.php");
         require_once(SYSTEM_PATH . "RPC.php");
         require_once(SYSTEM_PATH . "User.php");
-        require_once(SYSTEM_PATH . "Picture.php");
     }
     
     private function loadCommonLibraries() {
         // XMPPtoForm lib
         require_once(LIB_PATH . "XMPPtoForm.php");
-        
-        // SDPtoJingle and JingletoSDP lib :)
-        require_once(LIB_PATH . "SDPtoJingle.php");
-        require_once(LIB_PATH . "JingletoSDP.php");
-        
-        // The Lazy page loader
-        require_once(LIB_PATH . "Lazy.php");
-    }
 
-    private function loadHelpers() {
-        foreach(glob(HELPERS_PATH."*Helper.php") as $file) {
-            require $file;
-        }
+        // Markdown lib
+        require_once(LIB_PATH . "Markdown.php");
+        
+        // The template lib
+        require_once(LIB_PATH . 'RainTPL.php');
     }
     
     private function loadDispatcher() {
-        require_once(SYSTEM_PATH . "template/TplPageBuilder.php");
-        require_once(SYSTEM_PATH . "controllers/BaseController.php");
-        require_once(SYSTEM_PATH . "controllers/AjaxController.php");
+        require_once(SYSTEM_PATH . "controllers/ControllerBase.php");
+        require_once(SYSTEM_PATH . "controllers/ControllerMain.php");
+        require_once(SYSTEM_PATH . "controllers/ControllerAjax.php");
+        //require_once(SYSTEM_PATH . "controllers/FrontController.php");
 
         require_once(SYSTEM_PATH . "Route.php");
 
-        require_once(SYSTEM_PATH . "controllers/FrontController.php");
+        require_once(SYSTEM_PATH . "template/TplPageBuilder.php");
 
         require_once(SYSTEM_PATH . "widget/WidgetBase.php");
         require_once(SYSTEM_PATH . "widget/WidgetWrapper.php");
@@ -201,15 +200,11 @@ class Bootstrap {
     }
     
     private function setLogs() {
-        /*$cd = new \Modl\ConfigDAO();
-        $config = $cd->get();
-        
         try {
-            define('ENVIRONMENT', $config->environment);
+            define('ENVIRONMENT',\system\Conf::getServerConfElement('environment'));
         } catch (Exception $e) {
             define('ENVIRONMENT','development');//default environment is production
-        }*/
-        define('ENVIRONMENT','development');//default environment is production
+        }
         /**
          * LOG_MANAGEMENT: define where logs are saved, prefer error_log, or log_folder if you use mutual server.
          * 'error_log'  : save in file defined on your file server
@@ -222,7 +217,7 @@ class Bootstrap {
             ini_set('log_errors', 1);
             ini_set('display_errors', 0);
             ini_set('error_reporting', E_ALL );
-        
+            
         } else {
             ini_set('log_errors', 1);
             ini_set('display_errors', 0);
@@ -236,50 +231,39 @@ class Bootstrap {
     
     private function setTimezone() {
         // We set the default timezone to the server timezone
-        $cd = new \Modl\ConfigDAO();
-        $config = $cd->get();
-        
-        date_default_timezone_set($config->timezone);
+        $conf = \system\Conf::getServerConf();
+        if(isset($conf['timezone']))
+            date_default_timezone_set($conf['timezone']);
     }
-
-    private function setLogLevel() {
-        // We set the default timezone to the server timezone
-        $cd = new \Modl\ConfigDAO();
-        $config = $cd->get();
-
-        define('LOG_LEVEL', (int)$config->loglevel);
-    }
-
+    
     private function loadModl() {
         // We load Movim Data Layer
-        $db = Modl\Modl::getInstance();
+        require_once(LIB_PATH . 'Modl/loader.php');
+
+        $db = modl\Modl::getInstance();
         $db->setModelsPath(APP_PATH.'models');
         
-        Modl\Utils::loadModel('Config');
-        Modl\Utils::loadModel('Presence');
-        Modl\Utils::loadModel('Contact');
-        Modl\Utils::loadModel('Privacy');
-        Modl\Utils::loadModel('RosterLink');
-        Modl\Utils::loadModel('Session');
-        Modl\Utils::loadModel('Cache');
-        Modl\Utils::loadModel('Postn');
-        Modl\Utils::loadModel('Subscription');
-        Modl\Utils::loadModel('Caps');
-        Modl\Utils::loadModel('Item');
-        Modl\Utils::loadModel('Message');
-        Modl\Utils::loadModel('Sessionx');
-        Modl\Utils::loadModel('Conference');
-
-        if(file_exists(DOCUMENT_ROOT.'/config/db.inc.php')) {
-            require DOCUMENT_ROOT.'/config/db.inc.php';
-        } else {
-            throw new MovimException('Cannot find config/db.inc.php file');
-        }
+        modl\loadModel('Presence');
+        modl\loadModel('Contact');
+        modl\loadModel('Privacy');
+        modl\loadModel('RosterLink');
+        modl\loadModel('Session');
+        modl\loadModel('Cache');
+        modl\loadModel('Postn');
+        modl\loadModel('Subscription');
+        modl\loadModel('Caps');
+        modl\loadModel('Item');
+        modl\loadModel('Message');
         
-        $db->setConnectionArray($conf);
+        $db->setConnectionArray(\System\Conf::getServerConf());
         $db->connect();
 
         return true;
+    }
+    
+    private function loadMoxl() {
+        // We load Movim XMPP Library
+        require_once(LIB_PATH . 'Moxl/loader.php');
     }
     
     private function setBrowserSupport() {
@@ -335,11 +319,15 @@ class Bootstrap {
     }
     
     private function startingSession() {
-        $s = \Sessionx::start();
-        $s->load();
+        global $session;
+        // Starting session.
+        $sess = Session::start(APP_NAME);
+        $session = $sess->get('session');
+        
+        //$this->user = new User;
 
-        $user = new User;
-        $db = modl\Modl::getInstance();
-        $db->setUser($user->getLogin());
+        /*$db = modl\Modl::getInstance();
+        $u = new User();
+        $db->setUser($u->getLogin());*/
     }
 }

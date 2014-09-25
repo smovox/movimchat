@@ -18,42 +18,13 @@
  * See COPYING for licensing information.
  */
 
-use Moxl\Xec\Action\Vcard\Get;
-
 class ContactSummary extends WidgetCommon
 {
-    function load()
+
+    function WidgetLoad()
     {
         $this->addcss('contactsummary.css');
         $this->registerEvent('vcard', 'onVcard');
-    }
-    
-    function display()
-    {
-        $cd = new \Modl\ContactDAO();
-
-        if($_GET['f'] == $this->user->getLogin()) {
-            $contact = $cd->get($this->user->getLogin());
-        }
-
-        if(!isset($contact)) {
-            $contact = $cd->getRosterItem($_GET['f']);
-        }
-
-        if(!isset($contact)) {
-            $contact = $cd->get($_GET['f']);
-        }
-        
-        if(isset($contact)) {
-            $this->view->assign('contact', $contact);
-            $this->view->assign('refresh', false);
-        } else {
-            $contact = new modl\Contact();
-            $contact->jid = $_GET['f'];
-            $this->view->assign('contact', $contact);
-            
-            $this->view->assign('refresh', $this->genCallAjax('ajaxRefreshVcard', "'".$_GET['f']."'"));
-        }
     }
     
     function onVcard($contact)
@@ -64,36 +35,75 @@ class ContactSummary extends WidgetCommon
     
     function ajaxRefreshVcard($jid)
     {
-        $r = new Get;
-        $r->setTo(echapJid($jid))->request();
+        $r = new moxl\VcardGet();
+        $r->setTo($jid)->request();
     }
     
     function prepareContactSummary($contact)
     {
+        $gender = getGender();
+        $marital = getMarital();
+        
         // Contact avatar
         $html = '
-            <a
-                class="avatar"
-                style="background-image: url('.$contact->getPhoto('l').');"
-                href="'.Route::urlize('friend',$contact->jid).'">
-            </a>
+            <img class="avatar" src="'.$contact->getPhoto('l').'"/>
             ';
             
         $presencetxt = getPresencesTxt();
             
         // Contact general infos
-        $html .= '<h1 class="paddedbottom">'.$contact->getTrueName().'</h1>';
-                
-        if($this->testIsSet($contact->url) && filter_var($contact->url, FILTER_VALIDATE_URL)) 
-            $html .= '<a target="_blank" class="paddedtopbottom url" href="'.$contact->url.'">'.$contact->url.'</a>';
-          
-        if($contact->status) {
+        
+        if(isset($contact->presence))
             $html .= '
-                <div class="paddedbottom">
+                <h1 class="'.$presencetxt[$contact->presence].'">'.$contact->getTrueName().'</h1>';
+
+            /*if($this->testIsSet($contact->name))
+                $html .= $contact->name.' ';
+            else*/
+                $html .= $contact->getTrueName().' ';
+                
+            if($this->testIsSet($contact->url) && filter_var($contact->url, FILTER_VALIDATE_URL)) 
+                $html .= '<br /><a target="_blank" href="'.$contact->url.'">'.$contact->url.'</a>';
+          
+        if(isset($contact->status)) {
+            $html .= '
+                <div class="textbubble">
                     '.prepareString($contact->status).'
                 </div>'; 
         }
 
         return $html;
+    }
+    
+    function build()
+    {
+        $cd = new modl\ContactDAO();
+        
+        if($_GET['f'] == $this->user->getLogin()) {
+            $contact = $cd->get($this->user->getLogin());
+        } /*else {
+            $contact = $cd->getRosterItem($_GET['f']);
+            $refresh = true;
+        }*/
+        
+        if(!isset($contact)) {
+            $contact = $cd->get($_GET['f']);
+            //$refresh = false;
+        }
+        ?>
+        <div id="contactsummary">
+        <?php
+        if($contact != null) {
+            echo $this->prepareContactSummary($contact);
+        } else {
+            $contact = new modl\Contact();
+            echo $this->prepareContactSummary($contact);
+            ?>
+            <script type="text/javascript">
+                setTimeout("<?php $this->callAjax('ajaxRefreshVcard', "'".$_GET['f']."'");?>", 1000);
+            </script>
+        <?php } ?>
+        </div>
+        <?php
     }
 }

@@ -20,6 +20,6 @@
 
 class About extends WidgetBase
 {
-    function load() {
+    function WidgetLoad() {
     }
 }

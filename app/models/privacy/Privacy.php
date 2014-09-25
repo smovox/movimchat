@@ -2,7 +2,7 @@
 
 namespace modl;
 
-class Privacy extends Model {    
+class Privacy extends ModlModel {    
     public $pkey;
     public $value;
     protected $hash;
@@ -29,10 +29,5 @@ class Privacy extends Model {
         
         $pd = new PrivacyDAO();
         $pd->set($p);
-    }
-
-    static function get($key) {
-        $pd = new PrivacyDAO();
-        return (int)$pd->get($key)->value;
     }
 }

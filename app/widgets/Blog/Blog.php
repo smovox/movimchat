@@ -1,7 +1,7 @@
 <?php
 
 class Blog extends WidgetCommon {
-    function load()
+    function WidgetLoad()
     {
         $from = $_GET['f'];
         $node = $_GET['n'];

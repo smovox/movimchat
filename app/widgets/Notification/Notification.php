@@ -20,31 +20,36 @@
 
 class Notification extends WidgetCommon
 {
-    function load()
+    function WidgetLoad()
     {
         $this->addcss('notification.css');
         $this->addjs('notification.js');
         $this->registerEvent('pubsuberror', 'onPubsubError');
-        $this->registerEvent('moxlerror', 'onMoxlError');
     }
     
     static function appendNotification($message, $type = 'info')
     {
+        //$id = $message.rand(0, 1500);
         $id = md5($message.$type);
         $html = '
             <div class="notif notificationAnim '.$type.'" id="'.$id.'">'.
                 $message.'
             </div>';
 
-        RPC::call('removeDiff', 'notification_widget', $html);
+        RPC::call('removeDiff', 'notification', $html);
         RPC::commit();
     }
 
     function onPubsubError($error) {
         Notification::appendNotification($error, 'error');
     }
-
-    function onMoxlError($arr) {
-        Notification::appendNotification($arr[1], 'error');
+    
+    function build()
+    {
+        ?>
+        <div id="notification">
+            
+        </div>
+        <?php
     }
 }

@@ -2,7 +2,7 @@
 
 namespace modl;
 
-class RosterLink extends Model {    
+class RosterLink extends ModlModel {    
     public $session;
     public $jid;
     
@@ -15,8 +15,6 @@ class RosterLink extends Model {
     public $groupname;
     
     public $chaton;
-
-    public $publickey;
     
     public function __construct() {
         $this->_struct = '

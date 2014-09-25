@@ -15,11 +15,6 @@
  * See COPYING for licensing information.
  */
 
-use Moxl\Xec\Action\Roster\AddItem;
-use Moxl\Xec\Action\Roster\RemoveItem;
-use Moxl\Xec\Action\Presence\Subscribe;
-use Moxl\Xec\Action\Presence\Unsubscribe;
-
 class ContactAction extends WidgetCommon
 {
     /**
@@ -29,27 +24,27 @@ class ContactAction extends WidgetCommon
      * @returns 
      */
     function ajaxAddContact($jid) {
-        $r = new AddItem;
+        $r = new moxl\RosterAddItem();
         $r->setTo($jid)
           ->setFrom($this->user->getLogin())
           ->request();
     }
     
     function ajaxSubscribeContact($jid) {
-        $p = new Subscribe;
+        $p = new moxl\PresenceSubscribe();
         $p->setTo($jid)
           ->request();
     }
     
     
     function ajaxRemoveContact($jid) {         
-        $r = new RemoveItem;
+        $r = new moxl\RosterRemoveItem();
         $r->setTo($jid)
           ->request();
     }
     
     function ajaxUnsubscribeContact($jid) {         
-        $p = new Unsubscribe;
+        $p = new moxl\PresenceUnsubscribe();
         $p->setTo($jid)
           ->request();
     }
@@ -64,34 +59,37 @@ class ContactAction extends WidgetCommon
         if(isset($c)) {            
             // Chat button
             if($c->jid != $this->user->getLogin()) {
+            
                 $presences = getPresences();
                 
-                $html .='<h2>'.$this->__('title').'</h2>';
+                $html .='<h2>'.t('Actions').'</h2>';
                 
                 $ptoc = array(
                     1 => 'green',
                     2 => 'yellow',
                     3 => 'red', 
                     4 => 'purple'
-                );
-
-                if($c->value && !in_array((int)$c->value, array(5, 6))) {
+                        );
+                
+                if(isset($c->presence) && !in_array($c->presence, array(5, 6))) {
                     $html .= '
                         <a
-                            class="button color '.$ptoc[(int)$c->value].'"
+                            class="button color '.$ptoc[$c->presence].' icon chat"
+                            style="float: left;"
                             id="friendchat"
                             onclick="'.$this->genCallWidget("Chat","ajaxOpenTalk", "'".$c->jid."'").'"
                         >
-                            <i class="fa fa-comment"></i> '.$presences[(int)$c->value].' - '.$this->__('chat').'
+                            '.$presences[$c->presence].' - '.t('Chat').'
                         </a>';
                 }
             }
             
-            $html .= '<div style="clear: both;"></div><br />';
+            $html .= '<div style="clear: both;"></div>';
             
             $html .='
             <a
-                class="button black"
+                class="button icon rm black"
+                style="margin: 1em 0px; display: block;"
                 id="friendremoveask"
                 onclick="
                     document.querySelector(\'#friendremoveyes\').style.display = \'block\';
@@ -99,16 +97,16 @@ class ContactAction extends WidgetCommon
                     this.style.display = \'none\'
                 "
             >
-                <i class="fa fa-minus"></i> '.t('Remove this contact').'
+                '.t('Remove this contact').'
             </a>
 
             <a
-                class="button color green merged left';
+                class="button color green icon yes merged left';
             if(!isset($c->presence) || $c->presence == 5)
                 $html .=' left';
             $html .= '"
                 id="friendremoveyes"
-                style="float: left; display: none;"
+                style="margin: 1em 0px; float: left; display: none;"
                 onclick="
                     setTimeout(function() {'.
                         $this->genCallAjax("ajaxRemoveContact", "'".$_GET['f']."'").
@@ -116,12 +114,12 @@ class ContactAction extends WidgetCommon
                     $this->genCallAjax("ajaxUnsubscribeContact", "'".$_GET['f']."'").
                 'this.className=\'button color green icon loading merged left\'; setTimeout(function() {location.reload(false)}, 2000);"
             >
-                <i class="fa fa-check"></i> '.__('button.yes').'
+                '.t('Yes').'
             </a>
 
             <a
-                class="button color red merged right"
-                style="float: left; display: none;"
+                class="button color red icon no merged right"
+                style="margin: 1em 0px; float: left; display: none;"
                 id="friendremoveno"
                 onclick="
                     document.querySelector(\'#friendremoveask\').style.display = \'block\';
@@ -129,14 +127,15 @@ class ContactAction extends WidgetCommon
                     this.style.display = \'none\'
                 "
             >
-                <i class="fa fa-times"></i> '.__('button.no').'
+                '.t('No').'
             </a>';
         } elseif($_GET['f'] != $this->user->getLogin()) {
-            $html .='<h2>'.$this->__('actions').'</h2>';
+                            
+            $html .='<h2>'.t('Actions').'</h2>';
             
             $html .='
             <a
-                class="button color purple"
+                class="button color purple icon add"
                 onclick="
                     setTimeout(function() {'.
                         $this->genCallAjax("ajaxAddContact", "'".$_GET['f']."'").
@@ -144,10 +143,14 @@ class ContactAction extends WidgetCommon
                 $this->genCallAjax("ajaxSubscribeContact", "'".$_GET['f']."'").
                 'this.className=\'button color purple icon loading merged left\'; setTimeout(function() {location.reload(false)}, 3000);"
             >
-                <i class="fa fa-plus"></i> '.$this->__('invite').'
+                '.t('Invite this user').'
             </a>';
         }
         
         return $html;
+    }
+    
+    function build() {
+        echo $this->prepareContactInfo();
     }
 }

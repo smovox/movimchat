@@ -20,11 +20,11 @@
 
 class Poller extends WidgetBase
 {
-    function load()
+    function WidgetLoad()
     {
         // We add the javascript that does the job.
         $this->addjs('poller.js');
-        // And that's it!
+        // And that's it!	
     }
 
     function build()

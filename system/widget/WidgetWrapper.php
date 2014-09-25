@@ -101,7 +101,7 @@ class WidgetWrapper
     /**
      * Retrieves the list of loaded widgets.
      */
-    function getLoadedWidgets()
+    function get_loaded_widgets()
     {
         if(count($this->loaded_widgets) > 0) {
             return $this->loaded_widgets;
@@ -110,7 +110,7 @@ class WidgetWrapper
         }
     }
     
-    function getAllWidgets()
+    function get_all_widgets()
     {
         return $this->all_widgets;
     }
@@ -118,7 +118,7 @@ class WidgetWrapper
     /**
      * Loads a widget and returns it.
      */
-    public function loadWidget($widget_name)
+    public function load_widget($widget_name)
     {
         // Attempting to load the user's widgets in priority
         $widget_path = "";
@@ -145,13 +145,13 @@ class WidgetWrapper
      *   be passed along to the method.
      * @return what the widget's method returns.
      */
-    function runWidget($widget_name, $method, array $params = NULL)
+    function run_widget($widget_name, $method, array $params = NULL)
     {
         if($this->register_widgets &&
            !in_array($widget_name, $this->loaded_widgets))
             $this->loaded_widgets[] = $widget_name;
 
-        $widget = $this->loadWidget($widget_name);
+        $widget = $this->load_widget($widget_name);
 
         if(!is_array($params))
             $params = array();
@@ -169,12 +169,12 @@ class WidgetWrapper
      * 
      * @return the registered events
      */
-    function registerEvents() {
-        $widgets = $this->getAllWidgets();
+    function register_events() {
+        $widgets = $this->get_all_widgets();
         foreach($widgets as $widget_name) {
-            $widget = $this->loadWidget($widget_name);
+            $widget = $this->load_widget($widget_name);
             // We save the registered events of the widget for the filter
-            if(isset($widget->events)) {
+            if(isset($widget->events))
                 foreach($widget->events as $key => $value) {
                     if(array_key_exists($key, $this->registered_events)) {
                         $we = $this->registered_events[$key];
@@ -184,8 +184,7 @@ class WidgetWrapper
                     } else {
                         $this->registered_events[$key] = array($widget_name);
                     }
-                }
-            }
+                } 
         }
         
         return $this->registered_events;
@@ -207,24 +206,24 @@ class WidgetWrapper
                array_key_exists($fct, $this->registered_events))
                 $widgets = $this->registered_events[$fct];
         } else
-            $widgets = $this->getLoadedWidgets();
+            $widgets = $this->get_loaded_widgets();
 
         if(isset($widgets) && is_array($widgets))
             foreach($widgets as $widget)
-                $this->runWidget($widget, $method, $params);
+                $this->run_widget($widget, $method, $params);
     }
-    /*
+    
     function iterateAll($method, array $params = NULL) {
-        $widgets = $this->getAllWidgets();
+        $widgets = $this->get_all_widgets();
         $isevent = array();
         foreach($widgets as $widget) {
-            if($this->runWidget($widget, $method, $params))
+            if($this->run_widget($widget, $method, $params))
                 $isevent[$widget] = true;
         }
             
         return $isevent;
     }
-    */
+
     /**
      * Returns the list of loaded CSS.
      */

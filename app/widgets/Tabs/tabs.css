@@ -2,7 +2,10 @@
     list-style-type: none;
     margin: 0px;
     padding: 0px;
-    text-align: center;
+    width: 100%;
+    background-color: #445157;
+    overflow: hidden;
+    color: white;
 }
 
 #navtabs li {
@@ -11,8 +14,6 @@
 
     padding: 0em 2em;
     white-space: nowrap;
-
-    transition: background 0.5s;
 }
 #navtabs li a{
     display: block; 
@@ -22,8 +23,12 @@
     text-decoration: none;
 }
 
+.tabs {
+    clear: both;
+}
+
 #navtabs li:hover {
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: #46565E;
 }
 
 #navtabs li.on {
@@ -38,6 +43,10 @@
     position: relative;
 }
 
+.moving_block{
+    /*position: absolute;
+    top: 0px;*/
+}
 .fixed_block{ 
     background-color: white; 
     width: 880px;

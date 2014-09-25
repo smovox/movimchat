@@ -2,7 +2,7 @@
 
 namespace modl;
 
-class Caps extends Model {
+class Caps extends ModlModel {
     public $node;
     public $category;
     public $type;

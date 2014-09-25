@@ -2,31 +2,30 @@
 
 namespace modl;
 
-class PostnDAO extends SQL {  
+class PostnDAO extends ModlSQL {  
     function set(Postn $post) {
         $this->_sql = '
             update postn
-                set aname           = :aname,
-                    aid             = :aid,
-                    aemail          = :aemail,
+                set aname = :aname,
+                    aid = :aid,
+                    aemail = :aemail,
                     
-                    title           = :title,
-                    content         = :content,
-                    contentcleaned  = :contentcleaned,
+                    title = :title,
+                    content = :content,
                     
-                    commentplace    = :commentplace,
+                    commentplace = :commentplace,
                     
-                    published       = :published,
-                    updated         = :updated,
-                    delay           = :delay,
+                    published = :published,
+                    updated = :updated,
+                    delay = :delay,
                     
-                    lat             = :lat,
-                    lon             = :lon,
+                    lat = :lat,
+                    lon = :lon,
                     
-                    links           = :links,
-                    tags            = :tags,
+                    links = :links,
+                    tags = :tags,
                     
-                    hash            = :hash
+                    hash = :hash
                     
                 where session = :session
                     and jid = :jid
@@ -36,32 +35,31 @@ class PostnDAO extends SQL {
         $this->prepare(
             'Postn', 
             array(
-                'aname'             => $post->aname,
-                'aid'               => $post->aid,
-                'aemail'            => $post->aemail,
-                        
-                'title'             => $post->title,
-                'content'           => $post->content,
-                'contentcleaned'    => $post->contentcleaned,
+                'aname'     => $post->aname,
+                'aid'       => $post->aid,
+                'aemail'    => $post->aemail,
                 
-                'commentplace'      => $post->commentplace,
+                'title'     => $post->title,
+                'content'   => $post->content,
                 
-                'published'         => $post->published,
-                'updated'           => $post->updated,
-                'delay'             => $post->delay,
-                        
-                'lat'               => $post->lat,
-                'lon'               => $post->lon,
-                        
-                'links'             => $post->links,
-                'tags'              => $post->tags,
-                        
-                'hash'              => $post->hash,
-                        
-                'session'           => $post->session,
-                'jid'               => $post->jid,
-                'node'              => $post->node,
-                'nodeid'            => $post->nodeid
+                'commentplace' => $post->commentplace,
+                
+                'published' => $post->published,
+                'updated'   => $post->updated,
+                'delay'     => $post->delay,
+                
+                'lat'       => $post->lat,
+                'lon'       => $post->lon,
+                
+                'links'     => $post->links,
+                'tags'      => $post->tags,
+                
+                'hash'      => $post->hash,
+                
+                'session'   => $post->session,
+                'jid'       => $post->jid,
+                'node'      => $post->node,
+                'nodeid'    => $post->nodeid
             )
         );
         
@@ -83,7 +81,6 @@ class PostnDAO extends SQL {
                 
                 title,
                 content,
-                contentcleaned,
                 
                 commentplace,
                 
@@ -111,7 +108,6 @@ class PostnDAO extends SQL {
                     
                     :title,
                     :content,
-                    :contentcleaned,
                     
                     :commentplace,
                     
@@ -131,32 +127,31 @@ class PostnDAO extends SQL {
             $this->prepare(
                 'Postn', 
                 array(
-                    'aname'             => $post->aname,
-                    'aid'               => $post->aid,
-                    'aemail'            => $post->aemail,
+                    'aname'     => $post->aname,
+                    'aid'       => $post->aid,
+                    'aemail'       => $post->aemail,
                     
-                    'title'             => $post->title,
-                    'content'           => $post->content,
-                    'contentcleaned'    => $post->contentcleaned,
+                    'title'     => $post->title,
+                    'content'   => $post->content,
                     
-                    'commentplace'      => $post->commentplace,
+                    'commentplace' => $post->commentplace,
                     
-                    'published'         => $post->published,
-                    'updated'           => $post->updated,
-                    'delay'             => $post->delay,
-                            
-                    'lat'               => $post->lat,
-                    'lon'               => $post->lon,
-                            
-                    'links'             => $post->links,
-                    'tags'              => $post->tags,
-                            
-                    'hash'              => $post->hash,
-                            
-                    'session'           => $post->session,
-                    'jid'               => $post->jid,
-                    'node'              => $post->node,
-                    'nodeid'            => $post->nodeid
+                    'published' => $post->published,
+                    'updated'   => $post->updated,
+                    'delay'     => $post->delay,
+                    
+                    'lat'       => $post->lat,
+                    'lon'       => $post->lon,
+                    
+                    'links'     => $post->links,
+                    'tags'      => $post->tags,
+                    
+                    'hash'      => $post->hash,
+                    
+                    'session'   => $post->session,
+                    'jid'       => $post->jid,
+                    'node'      => $post->node,
+                    'nodeid'    => $post->nodeid
                 )
             );
             
@@ -173,23 +168,6 @@ class PostnDAO extends SQL {
             'Postn',
             array(
                 'nodeid' => $nodeid
-            )
-        );
-            
-        return $this->run('Message');
-    }
-
-    function deleteNode($jid, $node) {
-        $this->_sql = '
-            delete from postn
-            where jid = :jid
-                and node = :node';
-
-        $this->prepare(
-            'Postn',
-            array(
-                'jid' => $jid,
-                'node' => $node
             )
         );
             
@@ -359,81 +337,5 @@ class PostnDAO extends SQL {
         );
         
         return $this->run(null, 'array'); 
-    }
-
-    function getCountSince($date) {
-        $this->_sql = '
-            select count(*) from postn
-            left outer join subscription on 
-            postn.session = subscription.jid and 
-            postn.jid = subscription.server and
-            postn.node = subscription.node
-            where postn.session = :session
-                    and postn.node not like \'urn:xmpp:microblog:0:comments/%\'
-                    and postn.node not like \'urn:xmpp:inbox\'
-            and subscription is not null
-            and published > :published';
-        
-        $this->prepare(
-            'Postn', 
-            array(
-                'session' => $this->_user,
-                'published' => $date
-            )
-        );
-        
-        $arr = $this->run(null, 'array');
-        if(is_array($arr) && isset($arr[0])) {
-            $arr = array_values($arr[0]);
-            return (int)$arr[0];
-        }
-    }
-
-    function getLastDate() {
-        $this->_sql = '
-            select published from postn
-            left outer join subscription on 
-            postn.session = subscription.jid and 
-            postn.jid = subscription.server and
-            postn.node = subscription.node
-            where postn.session = :session
-                    and postn.node not like \'urn:xmpp:microblog:0:comments/%\'
-                    and postn.node not like \'urn:xmpp:inbox\'
-            and subscription is not null
-            order by postn.published desc
-            limit 1 offset 0';
-        
-        $this->prepare(
-            'Postn', 
-            array(
-                'session' => $this->_user
-            )
-        );
-        
-        $arr = $this->run(null, 'array');
-        if(is_array($arr) && isset($arr[0]))
-            return $arr[0]['published'];
-    }
-
-    function exist($id) {
-        $this->_sql = '
-            select count(*) from postn
-            where postn.session = :session
-                    and postn.nodeid = :nodeid
-            ';
-        
-        $this->prepare(
-            'Postn', 
-            array(
-                'session'   => $this->_user,
-                'nodeid'    => $id
-            )
-        );
-
-        $arr = $this->run(null, 'array');
-        if(is_array($arr) && isset($arr[0])) {
-            $arr = array_values($arr[0]);
-            return (bool)$arr[0];
-        }
     }
 }

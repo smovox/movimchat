@@ -19,7 +19,7 @@
  */
 
 class Media extends WidgetBase {
-    function load()
+    function WidgetLoad()
     {
         $this->addcss('media.css');
         $this->addjs('media.js');
@@ -32,10 +32,6 @@ class Media extends WidgetBase {
         $this->registerEvent('media', 'onMediaUploaded');
     }
     
-    function display() {
-        $this->view->assign('refresh', $this->genCallAjax('ajaxRefreshMedia'));
-    }
-    
     function ajaxRefreshMedia()
     {
         $html = $this->mainFolder();
@@ -45,6 +41,8 @@ class Media extends WidgetBase {
     
     function ajaxDeleteItem($name)
     {
+        unlink($this->user->userdir.'thumb_'.$name);
+        unlink($this->user->userdir.'medium_'.$name);
         unlink($this->user->userdir.$name);
         
         $this->ajaxRefreshMedia();
@@ -54,25 +52,17 @@ class Media extends WidgetBase {
     {
         $html = '<ul class="thumb">';
 
-        foreach($this->user->getDir() as $file) {
-            $p = new \Picture;
-
-            // Just to prevent issue when you update from an old Movim version
-            if($p->get($this->user->userdir.$file, 300) == false) {
-                    $p->fromPath($this->user->userdir.$file);
-                    $p->set($this->user->userdir.$file);
-            }
-            
+        foreach($this->user->getDir() as $key => $value) {
             $html .= 
-                    '<li style="background-image: url('.$p->get($this->user->userdir.$file, 300).');">
-                        <a href="'.Route::urlize('media', $file).'">
+                    '<li style="background-image: url('.$value['thumb'].');">
+                        <a href="'.Route::urlize('media', $key).'">
                         </a>
                             <div 
                                 class="remove" 
                                 onclick="'.
                                     $this->genCallAjax(
                                         'ajaxDeleteItem', 
-                                        "'".$file."'"
+                                        "'".$key."'"
                                     ).'">
                                 x
                             </div>
@@ -105,65 +95,32 @@ class Media extends WidgetBase {
         if(file_exists($this->user->userdir.$f) && getimagesize($this->user->userdir.$f) != 0) {
         
             $er = @exif_read_data($this->user->userdir.$f);
+            
 
             $exif = '';
                 
             if($er) {            
                 if(isset($er['FileName']))
-                    $exif .= '
-                        <li>
-                            <span>'.$this->__('media.name').'</span>'.
-                            $er['FileName'].'
-                        </li>';
+                    $exif .= '<li><span>'.t('Name').'</span>'.$er['FileName'].'</li>';
                 if(isset($er['COMPUTED']['Width']) && isset($er['COMPUTED']['Height']))
-                    $exif .= '
-                        <li>
-                            <span>'.$this->__('media.resolution').'</span>'.
-                            $er['COMPUTED']['Width'].'x'.$er['COMPUTED']['Height'].'
-                        </li>';
+                    $exif .= '<li><span>'.t('Resolution').'</span>'.$er['COMPUTED']['Width'].'x'.$er['COMPUTED']['Height'].'</li>';
                 if(isset($er['FileSize']))
-                    $exif .= '
-                        <li>
-                            <span>'.$this->__('media.size').'</span>'.
-                            sizeToCleanSize($er['FileSize']).'
-                        </li>';
+                    $exif .= '<li><span>'.t('Size').'</span>'.sizeToCleanSize($er['FileSize']).'</li>';
                 if(isset($er['DateTime']))
-                    $exif .= '
-                        <li>
-                            <span>'.$this->__('media.date').'</span>'.
-                            prepareDate(strtotime($er['DateTime'])).'
-                        </li>';
+                    $exif .= '<li><span>'.t('Date').'</span>'.prepareDate(strtotime($er['DateTime'])).'</li>';
                 if(isset($er['ISOSpeedRatings']))
-                    $exif .= '
-                        <li>
-                            <span>'.$this->__('media.iso').'</span>'.
-                            $er['ISOSpeedRatings'].'
-                        </li>';
+                    $exif .= '<li><span>'.t('ISO').'</span>'.$er['ISOSpeedRatings'].'</li>';
                 if(isset($er['Model']))
-                    $exif .= '
-                        <li>
-                            <span>'.$this->__('media.camera').'</span>'.
-                            $er['Model'].'
-                        </li>';
+                    $exif .= '<li><span>'.t('Camera').'</span>'.$er['Model'].'</li>';
                 if(isset($er['Artist']))
-                    $exif .= '
-                        <li>
-                            <span>'.$this->__('media.artist').'</span>'.
-                            $er['Artist'].'
-                        </li>';
+                    $exif .= '<li><span>'.t('Artist').'</span>'.$er['Artist'].'</li>';
             }
             
-            $exif .= '
-                <li>
-                    <span>'.$this->__('media.original').'</span>
-                    <a target="_blank" href="'.$this->user->useruri.$f.'">'.
-                        $this->__('media.link').'
-                    </a>
-                </li>';
+            $exif .= '<li><span>'.t('Original').'</span><a target="_blank" href="'.$this->user->useruri.$f.'">'.t('Link').'</a></li>';
                 
             $html = '
                 <div class="viewer">
-                    <img src="'.$this->user->useruri.$f.'" style="max-width: '.$er['COMPUTED']['Width'].'px"/>
+                    <img src="'.$this->user->useruri.'medium_'.$f.'"/>
                     
                     <div class="exif">
                         <ul>
@@ -174,6 +131,31 @@ class Media extends WidgetBase {
                 
             return $html;
         }
+    }
+    
+    function build()
+    {
+        $refresh = $this->genCallAjax('ajaxRefreshMedia');
+    ?>
+        <script type="text/javascript">
+            function refreshMedia() {
+                <?php echo $refresh; ?>
+            }
+        </script>
+    <?php
+        if(isset($_GET['f'])) {
+    ?>
+        <div class="tabelem" title="<?php echo t('Viewer'); ?>" id="viewer">
+            <?php echo $this->pictureViewer($_GET['f']); ?>
+        </div>
+    <?php
+        }
+    ?>
+        <div class="tabelem" title="<?php echo t('Media'); ?>" id="media">    
+            <?php echo $this->mainFolder(); ?>
+            <div class="clear"></div>
+        </div>
+    <?php
     }
 
 }

@@ -1,19 +1,21 @@
 <div class="comments" id="{$post->nodeid}comments">
     {$comments}
-    <a 
-        class="getcomments" 
-        onclick="{$getcomments} this.innerHTML = '<i class=\'fa fa-clock-o\'></i> {$c->__('post.comments_loading')}'"
-    >
-        <i class="fa fa-comments-o"></i> {$c->__('post.comments_get')}
-    </a>
+    <div class="comment">
+        <a 
+            class="getcomments icon chat" 
+            onclick="{$getcomments} this.innerHTML = '{$c->t('Loading comments ...')}'">
+                {$c->t('Get the comments')}
+        </a>
+    </div>
 </div>
 <div class="comments">
-    <a class="addcomment"
+    <div 
+        class="comment"
         onclick="
-        this.parentNode.querySelector('#commentsubmit').style.display = 'table'; 
-        this.style.display ='none'">
-        <i class="fa fa-comment-o"></i> {$c->__('post.comment_add')}
-    </a>
+            this.parentNode.querySelector('#commentsubmit').style.display = 'table'; 
+            this.style.display ='none'">
+        <a class="addcomment icon chat">{$c->t('Add a comment')}</a>
+    </div>
     <table id="commentsubmit">
         <tr>
             <td>
@@ -31,9 +33,9 @@
                                 {$publishcomment}
                                 document.getElementById('{$post->nodeid}commentcontent').value = '';
                             }"
-                    class="button color green"
+                    class="button color green icon yes"
                 >
-                    <i class="fa fa-check"></i> {$c->__('button.submit')}
+                    {$c->t("Submit")}
                 </a>
             </td>
         </tr>

@@ -19,9 +19,11 @@
  * See COPYING for licensing information.
  */
 
+if(!class_exists('Session')):
+
 class Session
 {
-    //protected $db;
+    protected $db;
     protected static $instances = array();
     protected static $sid = null;
     protected $container;
@@ -95,7 +97,7 @@ class Session
         $value = base64_encode(serialize($value));
         
         $sd = new modl\SessionDAO();
-        $sd->set(self::$sid, $this->container, $varname, $value);
+        $sd->set(self::$sid, $this->container, $varname, $value, time());
 
         return $value;
     }
@@ -137,5 +139,7 @@ class Session
     
     }
 }
+
+endif;
 
 ?>

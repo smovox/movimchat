@@ -1,27 +1,29 @@
-<div id="feed" class="spacetop tabelem"  title="{$c->__('page.feed')}">
+<div id="feed" class="spacetop tabelem"  title="{$c->t('Feed')}">
     <div id="feedhead">
     {$c->prepareHead()}
     </div>
 
-    <div class="posthead paddedbottom">
+    <div class="posthead">
+                    
         <a 
-            class="button color merged left" 
+            class="button color merged left icon blog" 
             href="{$blog_url}"
             target="_blank">
-            <i class="fa fa-pencil"></i> {$c->__('page.blog')}
+            {$c->t('Blog')}
         </a><a 
-            class="button color orange merged right" 
+            class="button color orange merged right icon feed" 
             href="{$feed_url}"
             target="_blank">
-            <i class="fa fa-rss"></i> {$c->__('page.feed')} (Atom)
+            {$c->t('Feed')} (Atom)
         </a>
 
         <a 
-            class="button color purple oppose" 
+            class="button color purple icon user oppose" 
             href="{$friend_url}">
-            <i class="fa fa-user"></i> {$c->__('my_posts')}
+            {$c->t('My Posts')}
         </a>
     </div>
+    
     
     <div id="feedcontent">
         <div id="feedposts">

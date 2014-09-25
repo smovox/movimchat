@@ -175,16 +175,11 @@ class XMPPtoForm{
             
             foreach($s->children() as $value){
                 if($value->getName() == "value"){
-                    $this->html .= $value;
+                    $this->html .= $value.' ';
                 }
             }
-
-        $this->html .= '"';
-
-        if($s['var'] == 'username')
-            $this->html .= ' pattern="[a-z0-9_-]*" ';
             
-        $this->html .= ' 
+        $this->html .= '" 
             type="'.$type.'" 
             title="'.$s->desc.'" 
             xmpptype="'.$s['type'].'"
@@ -272,15 +267,15 @@ class FormtoXMPP{
                 break;
         }
         foreach($this->inputs as $key => $value) {
-            if($value === '' && $this->stream->getName() == "stream") {
+            if($value == '' && $this->stream->getName() == "stream") {
                 RPC::call('movim_reload', Route::urlize('account','datamissing'));
                 RPC::commit();
                  exit;
             } elseif(substr($key, 0, 8) == 'generic_') {
                 $key = str_replace('generic_', '', $key);
                 if (!is_string($value)) {
-                    $value = $value->value;
-                }
+			$value = $value->value;
+		}
                 $node->addChild($key, $value);
             } elseif($value->attributes) {
                 $field = $node->addChild('field');
@@ -298,10 +293,9 @@ class FormtoXMPP{
                            
             } else{
                 $field = $node->addChild('field');
-
-                if($value == 'true' || $value === 1)
+                if($value == 'true')
                     $value = '1';
-                if($value == 'false' || $value === 0)
+                if($value == 'false')
                     $value = '0';
                     
                 $field->addChild('value', trim($value));

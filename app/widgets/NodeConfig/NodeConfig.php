@@ -18,22 +18,15 @@
  * See COPYING for licensing information.
  */
 
-use Moxl\Xec\Action\Pubsub\GetConfig;
-use Moxl\Xec\Action\Pubsub\SetConfig;
-use Moxl\Xec\Action\Group\Delete;
-
 class NodeConfig extends WidgetBase
 {
 
-    function load()
+    function WidgetLoad()
     {
         $this->registerEvent('pubsubconfig', 'onConfigForm');
         $this->registerEvent('pubsubconfigsubmited', 'onGroupConfig');
         $this->registerEvent('deletionsuccess', 'onGroupDeleted');
-    }
-
-    function display()
-    {
+        
         if(isset($_GET['s']) && isset($_GET['n'])) {
             $nd = new modl\ItemDAO();
             $node = $nd->getItem($_GET['s'], $_GET['n']);
@@ -54,7 +47,7 @@ class NodeConfig extends WidgetBase
     function onGroupDeleted($server) {
         $html = '
             <a href="'.Route::urlize('server', $server).'">
-                '.$this->__('group.delete_return', $server).'
+                '.t("Return to %s's list of groups", $server).'
             </a><br /><br />';
             
         Notification::appendNotification(t('Group deleted'), 'success');
@@ -63,7 +56,7 @@ class NodeConfig extends WidgetBase
     }
     
     function onGroupConfig($stanza) { 
-        Notification::appendNotification($this->__('group.config_saved'), 'success');
+        Notification::appendNotification(t('Group configuration saved'), 'success');
         RPC::commit();        
     }
     
@@ -75,14 +68,15 @@ class NodeConfig extends WidgetBase
                 '
                 <hr /><br />
                 <a
-                        class="button color green oppose" 
+                        class="button color green icon yes" 
+                        style="float: right;"
                         onclick="
                             '.$submit.'
                             this.onclick=null;
                             this.style.display = \'none\'
                             "
                     >
-                        <i class="fa fa-check"></i> '.__('button.validate').'
+                        '.t('Validate').'
                 </a>
                 <br />
                 <br />
@@ -93,29 +87,68 @@ class NodeConfig extends WidgetBase
     }
     
     function ajaxGroupConfig($server, $node){
-        $r = new GetConfig;
+        $r = new moxl\PubsubGetConfig();
         $r->setTo($server)
           ->setNode($node)
           ->request();
     }
     
     function ajaxGroupDelete($server, $node){
-        $nd = new \Modl\ItemDAO();
+        $nd = new modl\ItemDAO();
         $nd->deleteItem($server, $node);
         
-        $r = new Delete;
+        $r = new moxl\GroupDelete();
         $r->setTo($server)
           ->setNode($node)
           ->request();
     }
     
     function ajaxSubmitConfig($data, $server, $node){
-        $r = new SetConfig;
+        $r = new moxl\PubsubSetConfig();
         $r->setTo($server)
           ->setNode($node)
           ->setData($data)
           ->request();
     }
+    /*
+    function build()
+    {
+
+        echo '
+            <div class="breadcrumb">
+                <a href="'.Route::urlize('explore').'">
+                    '.t('Explore').'
+                </a>
+                <a href="'.Route::urlize('server', $_GET['s']).'">
+                    '.$_GET['s'].'
+                </a>
+                <a href="'.Route::urlize('node', array($_GET['s'], $_GET['n'])).'">
+                    '.$_GET['n'].'
+                </a>
+                <a>'.t('Configuration').'</a>
+            </div>';
+        ?>
+
+        <div class="tabelem" title="<?php echo t('Configuration'); ?>" id="groupconfig">
+            <h1><?php echo t('Configuration'); ?></h1>
+            
+            <div id="groupconfiguration" class="paddedtop">
+                <div id="handlingmessages"></div>
+                <a 
+                    class="button color green icon write" 
+                    onclick="<?php echo $this->genCallAjax('ajaxGroupConfig', "'".$_GET['s']."'", "'".$_GET['n']."'"); ?> this.style.display = 'none'">
+                    <?php echo t("Configure your group");?>
+                </a>
+                <a 
+                    class="button color red icon no" 
+                    onclick="<?php echo $this->genCallAjax('ajaxGroupDelete', "'".$_GET['s']."'", "'".$_GET['n']."'"); ?> this.style.display = 'none'">
+                    <?php echo t("Delete this group");?>
+                </a>
+            </div>
+        </div>
+        <?php
+    }
+    */
 }
 
 ?>

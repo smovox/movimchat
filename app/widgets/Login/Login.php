@@ -1,4 +1,5 @@
 <?php
+if (!defined('DOCUMENT_ROOT')) die('Access denied');
 /**
  * @package Widgets
  *
@@ -17,28 +18,23 @@
  * See COPYING for licensing information.
  */
 
-class Login extends WidgetBase
-{
-    function load()
+class Login extends WidgetBase {
+
+    function WidgetLoad()
     {
         $this->addcss('login.css');
         $this->addjs('login.js');
         $this->registerEvent('config', 'onConfig');
         $this->registerEvent('moxlerror', 'onMoxlError');
-    }
-
-    function display()
-    {
+        
         $submit = $this->genCallAjax('ajaxLogin', "movim_parse_form('login')");
-        
-        $cd = new \Modl\ConfigDAO();
-        $config = $cd->get();
-        
         $this->view->assign('submit', $submit);
-        $this->view->assign('info',   $config->info);
-
-        $sd = new \Modl\SessionxDAO();
-        $sd->clean();
+        $this->view->assign('conf',   \system\Conf::getServerConf($submit));
+        $this->view->assign('submit_event', 
+            'document.getElementById(\'submitb\').click();
+            '.$submit.'
+            loginButtonSet(\''.t('Connecting...').'\', true); 
+            this.onclick=null;');
             
         if(isset($_GET['err'])) {
             $this->view->assign('warnings', $this->displayWarning($_GET['err'], true));
@@ -53,23 +49,17 @@ class Login extends WidgetBase
                 $pop++;
 
         $this->view->assign('pop', $pop-2);
-
-        $sd = new \Modl\SessionxDAO();
-        $connected = $sd->getConnected();
-
-        $this->view->assign('connected', $connected);
         
         $this->view->assign('gmail',
-            $this->__('account.gmail',
+            t('%sGmail accounts are also compatible%s but are not fully supported',
                 '<a href="#" onclick="fillExample(\'your.id@gmail.com \', \'\');">', '</a>'));
                 
         $this->view->assign('facebook',
-            $this->__('account.facebook',
+            t('You can login with Facebook (chat only) using %syour.id@chat.facebook.com%s and your password',
                 '<a href="#" onclick="fillExample(\'your.id@chat.facebook.com \', \'\');">', '</a>'));
-
-        $cd = new \Modl\ConfigDAO();
-        $config = $cd->get();
-        $whitelist = $config->xmppwhitelist;
+        
+        $conf = \system\Conf::getServerConf();
+        $whitelist = $conf['xmppWhiteList'];
         
         if(isset($whitelist) && $whitelist!=''){
             $this->view->assign('whitelist', $whitelist);
@@ -95,90 +85,90 @@ class Login extends WidgetBase
                 case 'noaccount':
                     $warning = '
                             <div class="message warning">
-                                '.$this->__('error.username').'
+                                '.t('Wrong username').'
                             </div> ';
                     break;
                 case 'invalidjid':
                     $warning = '
                             <div class="message warning">
-                                '.$this->__('error.jid').'
+                                '.t('Invalid JID').'
                             </div> ';
                     break;
                 case 'errormechanism':
                     $warning = '
                             <div class="message error">
-                                '.$this->__('error.mechanism').'
+                                '.t('Authentication mechanism not supported by Movim').'
                             </div> ';
                     break;
                 case 'errorchallenge':
                     $warning = '
                             <div class="message error">
-                                '.$this->__('error.empty_challenge').'
+                                '.t('Empty Challenge from the server').'
                             </div> ';
                     break;
                 case 'dnsdomain':
                     $warning = '
                             <div class="message error">
-                                '.$this->__('error.dns').'
+                                '.t('XMPP Domain error, your account is not a correct Jabber ID').'
                             </div> ';
                     break;
                 case 'datamissing':
                     $warning = '
                             <div class="message error">
-                                '.$this->__('error.data_missings').'
+                                '.t('Some data are missing !').'
                             </div> ';
                     break;
                 case 'wrongpass':
                     $warning = '
                             <div class="message warning">
-                                '.$this->__('error.wrong_password').'
+                                '.t('Wrong password').'
                             </div> ';
                     break;
                 case 'failauth':
                     $warning = '
                             <div class="message warning">
-                                '.$this->__('error.fail_auth').'
+                                '.t('The XMPP authentification failed').'
                             </div> ';
                     break;
                 case 'bosherror':
                     $warning = '
                             <div class="message error">
-                                '.$this->__('error.bosh_invalid').'
+                                '.t('The current BOSH URL in invalid').'
                             </div> ';
                     break;
                 case 'internal':
                     $warning = '
                             <div class="message error">
-                                '.$this->__('error.internal').'
+                                '.t('Internal server error').'
                             </div> ';
                     break;
                 case 'session':
                     $warning = '
                             <div class="message error">
-                                '.$this->__('error.session').'
+                                '.t('Session error').'
                             </div> ';
                     break;
                 case 'acccreated':
                     $warning = '
                             <div class="message success">
-                                '.$this->__('error.account_created').'
+                                '.t('Account successfully created').'
                             </div> ';
                     break;
                 case 'wrongaccount':
                     $warning = '
                             <div class="message error">
-                                '.$this->__('error.wrong_account').'
+                                '.t('Movim failed to authenticate. You entered wrong data').'
                             </div> ';
                     break;
                 case 'serverunauthorized':
                     $warning = '
                             <div class="message warning">
-                                '.$this->__('error.xmpp_unauthorized').'
+                                '.t('Your XMPP server is unauthorized').'
                             </div>';
                 case 'mecerror':
                     $warning = '
                             <div class="message warning">
-                                '.$this->__('error.mec_error').'
+                                '.t('The server takes too much time to respond').'
                             </div>';
                     break;
                 default: 
@@ -193,11 +183,9 @@ class Login extends WidgetBase
                 return $warning;
             else {
                 RPC::call('movim_fill', 'warning', $warning);
-                RPC::call('loginButtonSet', $this->__("button.come_in"));
+                RPC::call('loginButtonSet', t("Come in!"));
 
                 RPC::commit();
-
-                exit;
             }
         }
     }
@@ -205,8 +193,7 @@ class Login extends WidgetBase
     function ajaxLogin($element)
     {
         // We get the Server Configuration
-        $cd = new \Modl\ConfigDAO();
-        $config = $cd->get();
+        $serverconfig = \system\Conf::getServerConf();
         
         $warning = false;
 
@@ -227,12 +214,12 @@ class Login extends WidgetBase
         
         // Check whitelisted server
         if(
-            $config->xmppwhitelist != '' &&!
+            $serverconfig['xmppWhiteList'] != '' &&!
             in_array(
                 end(
                     explode('@', $element['login'])
                     ), 
-                explode(',',$config->xmppwhitelist)
+                explode(',',$serverconfig['xmppWhiteList'])
                 )
             )
             $warning = 'serverunauthorized';
@@ -249,32 +236,57 @@ class Login extends WidgetBase
             $domain = $dns[0]['target'];
         else {
             $domain = $host;
+            //$warning = 'dnsdomain';
         }
 
         $this->displayWarning($warning);
 
-        // We create a new session or clear the old one
-        $s = Sessionx::start();
-        
-        $s->init($user, $element['pass'], $host, $domain);
+        global $session;
 
-        // We save the loaded widgets list in the database
-        $wrapper = WidgetWrapper::getInstance(false);
+        if($s != false) {
+            $session = $sess->get('session');
+        }
+        else {
+            $session = array(
+                    'rid' => 1,
+                    'sid' => 0,
+                    'id'  => 0,
+                    'url' => $serverconfig['boshUrl'],
+                    'port'=> 5222,
+                    'host'=> $host,
+                    'domain' => $domain,
+                    'ressource' => 'moxl'.substr(md5(date('c')), 3, 6),
+
+                    'user'     => $user,
+                    'password' => $element['pass'],
+
+                    'proxyenabled' => $serverconfig['proxyEnabled'],
+                    'proxyurl' => $serverconfig['proxyURL'],
+                    'proxyport' => $serverconfig['proxyPort'],
+                    'proxyuser' => $serverconfig['proxyUser'],
+                    'proxypass' => $serverconfig['proxyPass']);
+        }
 
         $sess = Session::start(APP_NAME);
-        $sess->set('registered_events', $wrapper->registerEvents());
+
+        $sess->set('session', $session);
+        
+        $wrapper = WidgetWrapper::getInstance(false);
+        
+        $sess->set('registered_events', $wrapper->register_events());
 
         // BOSH + XMPP connexion test
-        $warning = \Moxl\API::login();
+        $warning = moxl\login();
         
         if($warning != 'OK') {
+            //$this->displayWarning($warning);
             RPC::call('movim_redirect', Route::urlize('login', $warning));        
             RPC::commit();
         } else {
             $pd = new modl\PresenceDAO();
             $pd->clearPresence($element['login']);
         
-            RPC::call('movim_reload', Route::urlize('root'));            
+            RPC::call('movim_redirect', Route::urlize('main'));            
             RPC::commit();
         }
     }
@@ -283,9 +295,7 @@ class Login extends WidgetBase
     {
         $s = new moxl\StorageGet();
         $s->setXmlns('movim:prefs')
-          ->request();
-
-        $evt = new \Event();
+          ->request();        $evt = new \Event();
         $evt->runEvent('nostream');
     }
 }

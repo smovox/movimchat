@@ -2,13 +2,14 @@
     <input 
         type="text" 
         name="search" 
-        id="rostersearch" 
+        id="request" 
        
         autocomplete="off" 
-        placeholder="{$c->__('roster.search');}"/>
-        
+        onkeyup="rosterSearch(event);" 
+        onclick="focusContact();" 
+        placeholder="{$c->t('Search');}"/>
     <ul id="rosterlist" class="{$offline_shown}">
-        {$rosterlist}
+        {$c->prepareRoster()}
     </ul>
     <script type="text/javascript">sortRoster();</script>
 </div>
@@ -20,41 +21,22 @@
             onclick="
                 movim_remove_class('body', 'roster'),
                 movim_toggle_class('body', 'infos')"
-            title="{$c->__('roster.show_hide')}">
+            title="{$c->t('Show/Hide')}">
             <a class="about" href="#"></a>
         </li>
-
-        <li class="on_mobile">
-            <a class="conf" title="{$c->__('page.configuration')}" href="{$c->route('conf')}">
-            </a>
-        </li>
-        <li class="on_mobile">
-            <a class="help" title="{$c->__('page.help')}" href="{$c->route('help')}">
-            </a>
-        </li>
-
-        <li 
-            class="show_hide body_roster on_mobile"
-            onclick="
-                movim_remove_class('body', 'infos'),
-                movim_toggle_class('body', 'roster')"
-            title="{$c->__('roster.show_hide')}">
-            <a class="down" href="#"></a>
-        </li>
-
-        <li title="{$c->__('button.add')}">
+        <li title="{$c->t('Add')}">
             <label class="plus" for="addc"></label>
             <input type="checkbox" id="addc"/>
             <div class="tabbed">    
                 <div class="message">                  
-                    {$c->__('roster.add_contact_info1')}<br />
-                    {$c->__('roster.add_contact_info2')}
+                    {$c->t('Enter the Jabber ID of your contact.')}<br />
+                    {$c->t('Press enter to validate.')}
                 </div>  
                 <input 
                     name="searchjid" 
                     class="tiny" 
                     type="email"
-                    title="{$c->__('roster.jid')}"
+                    title="{$c->t('JID')}"
                     placeholder="user@server.tld" 
                     onkeypress="
                         if(event.keyCode == 13) {
@@ -64,12 +46,23 @@
                 />
             </div>
         </li>
-
         <li 
             onclick="{$toggle_cache}"
             title="{$c->t('Show/Hide')}">
             <a class="users" href="#"></a>
         </li>
-
+        {if="$chatbox == true"}
+            <div id="chattoggle">
+                {$c->prepareChatToggle()}
+            </div>
+        {/if}
+        <li 
+            class="show_hide body_roster on_mobile"
+            onclick="
+                movim_remove_class('body', 'infos'),
+                movim_toggle_class('body', 'roster')"
+            title="{$c->t('Show/Hide')}">
+            <a class="down" href="#"></a>
+        </li>
     </ul>
 </div>

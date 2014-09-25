@@ -18,18 +18,15 @@
  * See COPYING for licensing information.
  */
 
-use Moxl\Xec\Action\Storage\Get;
-use Moxl\Xec\Action\Storage\Set;
-
 class Config extends WidgetBase
 {
-    function load()
+    function WidgetLoad()
     {
         $this->addjs('color/jscolor.js');
         $this->registerEvent('config', 'onConfig');
 
         /* We load the user configuration */
-        $this->view->assign('languages', loadLangArray());
+        $this->view->assign('languages', load_lang_array());
         $this->view->assign('me',        $this->user->getLogin());
         $this->view->assign('conf',      $this->user->getConfig('language'));
         $this->view->assign('color',     $this->user->getConfig('color'));
@@ -54,7 +51,7 @@ class Config extends WidgetBase
     {
         $this->user->setConfig($data);
         RPC::call('movim_reload_this');
-        Notification::appendNotification($this->__('config.updated'));
+        Notification::appendNotification(t('Configuration updated'));
     }
 
     function ajaxSubmit($data) {
@@ -62,14 +59,14 @@ class Config extends WidgetBase
         if(isset($config))
             $data = array_merge($config, $data);
 
-        $s = new Set;
+        $s = new moxl\StorageSet();
         $s->setXmlns('movim:prefs')
           ->setData(serialize($data))
           ->request();
     }
 
     function ajaxGet() {
-        $s = new Get;
+        $s = new moxl\StorageGet();
         $s->setXmlns('movim:prefs')
           ->request();
     }

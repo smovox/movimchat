@@ -18,21 +18,15 @@
  * See COPYING for licensing information.
  */
 
-use Moxl\Xec\Action\Pubsub\DiscoItems;
-use Moxl\Xec\Action\Group\Create;
-
 class ServerNodes extends WidgetCommon
 {
-    function load()
+    function WidgetLoad()
     {
         $this->registerEvent('discoitems', 'onDiscoItems');
         $this->registerEvent('discoerror', 'onDiscoError');
         $this->registerEvent('creationsuccess', 'onCreationSuccess');
         $this->registerEvent('creationerror', 'onCreationError');
-    }
 
-    function display()
-    {
         if($_GET['s'] != null) {
             $this->view->assign('server', $this->prepareServer($_GET['s']));
             $this->view->assign('get_nodes', $this->genCallAjax('ajaxGetNodes', "'".$_GET['s']."'"));
@@ -43,27 +37,93 @@ class ServerNodes extends WidgetCommon
     {
         RPC::call('movim_fill', 'servernodeshead', '');
     }
+/*
+    function onDiscoNodes($items)
+    {
+
+        
+        $submit = $this->genCallAjax('ajaxCreateGroup', "movim_parse_form('groupCreation')");
+        
+        $head = '
+            <a 
+                class="button icon add color green" 
+                onclick="movim_toggle_display(\'#groupCreation\')">
+                '.t("Create a new group").'
+            </a>';
+          
+        if(reset($items) != false) 
+            $html .= $this->prepareServer($items[1]);
+
+        $html .= '
+            <div class="popup" id="groupCreation">
+                <form name="groupCreation">
+                    <fieldset>
+                        <legend>'.t('Give a friendly name to your group').'</legend>
+                        <div class="element large mini">
+                            <input name="title" placeholder="'.t('My Little Pony - Fan Club').'"/>
+                        </div>
+                        <input type="hidden" name="server" value="'.$items[1].'"/>
+                    </fieldset>
+                    <a 
+                        class="button color icon yes blue merged left"
+                        onclick="'.$submit.'"
+                    >'.
+                            t('Add').'
+                    </a><a 
+                        class="button icon no black merged right" 
+                        onclick="movim_toggle_display(\'#groupCreation\')"
+                    >'.
+                            t('Close').'
+                    </a>
+                </form>
+            </div>';
+
+        RPC::call('movim_fill', 'servernodeslist', $html);
+        RPC::call('movim_fill', 'servernodeshead', $head);
+        RPC::commit();
+    }
+    
+    function onDiscoItems($items)
+    {
+        $html = '<ul class="list">';
+        foreach($items as $item) {
+            $html .= '
+                <li>
+                    <a href="'.Route::urlize('server', $item->attributes()->jid).'">'.
+                        $item->attributes()->jid. ' - '.
+                        $item->attributes()->name.'
+                    </a>
+                </li>';
+        }
+
+        $html .= '</ul>';
+
+        RPC::call('movim_fill', 'servernodeslist', $html);
+        RPC::call('movim_fill', 'servernodeshead', '');
+        RPC::commit();
+    }
+    */
     
     function onDiscoItems($server) {
         $submit = $this->genCallAjax('ajaxCreateGroup', "movim_parse_form('groupCreation')");
         
         list($type) = explode('.', $server);
         
-        if(!in_array($type, array('conference', 'muc', 'discussion', 'chat'))) {
+        if($type == 'pubsub') {
             $head = '
                 <a 
-                    class="button color green" 
+                    class="button icon add color green" 
                     onclick="movim_toggle_display(\'#groupCreation\')">
-                    <i class="fa fa-plus"></i> '.t("Create a new group").'
+                    '.t("Create a new group").'
                 </a>';
                 
             $html = '
                 <div class="popup" id="groupCreation">
                     <form name="groupCreation">
                         <fieldset>
-                            <legend>'.$this->__('friendly.label').'</legend>
+                            <legend>'.t('Give a friendly name to your group').'</legend>
                             <div class="element large mini">
-                                <input name="title" placeholder="'.$this->__('friendly.example').'"/>
+                                <input name="title" placeholder="'.t('My Little Pony - Fan Club').'"/>
                             </div>
                             <input type="hidden" name="server" value="'.$server.'"/>
                         </fieldset>
@@ -72,12 +132,12 @@ class ServerNodes extends WidgetCommon
                                 class="button color icon yes blue merged left"
                                 onclick="'.$submit.'"
                             >'.
-                                    __('button.add').'
+                                    t('Add').'
                             </a><a 
                                 class="button icon no black merged right" 
                                 onclick="movim_toggle_display(\'#groupCreation\')"
                             >'.
-                                    __('button.close').'
+                                    t('Close').'
                             </a>
                         </div>
                     </form>
@@ -93,7 +153,7 @@ class ServerNodes extends WidgetCommon
     }
     
     function prepareServer($server) {
-        $nd = new \Modl\ItemDAO();
+        $nd = new \modl\ItemDAO();
         $items = $nd->getItems($server);
         
         if($items == null)
@@ -108,21 +168,16 @@ class ServerNodes extends WidgetCommon
                     $tags .= '<span class="tag">'.$i->num.'</span>';
             
                 if($i->subscription == 'subscribed')
-                    $tags .= '<span class="tag green">'.$this->__('subscribed').'</span>';
+                    $tags .= '<span class="tag green">'.t('Subscribed').'</span>';
                     
                 $url = '';
-                if($i->node != null) {
+                if($i->node != null)
                     $url = 'href="'.Route::urlize('node', array($i->server, $i->node)).'"';
-                } elseif($i->jid != null && !filter_var($i->jid, FILTER_VALIDATE_EMAIL)) {
-                    $url = 'href="'.Route::urlize('server', array($i->jid)).'"';
-                } else {
-                    $tags .= '<span class="tag">'.$i->jid.'</span>';
-                }
             
                 $html .= '
-                    <li class="block">
+                    <li>
                         <a '.$url.'>'.
-                            '<span class="content">'.$i->getName().'</span>'.
+                            $i->getName().
                             $tags.'
                         </a>
                     </li>';
@@ -132,12 +187,48 @@ class ServerNodes extends WidgetCommon
         $html .= '</ul>';
         
         return $html;
+/*        $nd = new \modl\ItemDAO();
+        
+        $nodes = $nd->getItems($server);
+        
+        $html = '<ul class="list">';
+        
+        foreach($nodes as $n) {
+            
+            if (substr($n->nodeid, 0, 20) != 'urn:xmpp:microblog:0') {
+                $name = '';
+                if(isset($n->title) && $n->title != '')
+                    $name = $n->title;
+                else
+                    $name = $n->nodeid;
+                    
+                $tags = '';
+                
+                if($n->num != null)
+                    $tags .= '<span class="tag">'.$n->num.'</span>';
+                    
+                if($n->subscription == 'subscribed')
+                    $tags .= '<span class="tag">'.t('Subscribed').'</span>';
+            
+                $html .= '
+                    <li>
+                        <a href="'.Route::urlize('node', array($n->serverid, $n->nodeid)).'">'.
+                            $name.
+                            $tags.'
+                        </a>
+                    </li>';
+            }
+        }
+
+        $html .= '</ul>';
+        
+        return $html;
+*/
     }
     
     function onCreationSuccess($items)
     {        
-        $html = '
-            <a href="
+        $html = '<a href="
             '.Route::urlize('node', array($items[0], $items[1])).'
             ">'.$items[2].'</a>';
 
@@ -152,10 +243,10 @@ class ServerNodes extends WidgetCommon
 
     function ajaxGetNodes($server)
     {
-        $nd = new \Modl\ItemDAO();
+        $nd = new modl\ItemDAO();
         $nd->deleteItems($server);
         
-        $r = new DiscoItems;
+        $r = new moxl\PubsubDiscoItems();
         $r->setTo($server)->request();
     }
     
@@ -164,7 +255,7 @@ class ServerNodes extends WidgetCommon
         //make a uri of the title
         $uri = stringToUri($data['title']);
         
-        $r = new Create;
+        $r = new moxl\GroupCreate();
         $r->setTo($data['server'])->setNode($uri)->setData($data['title'])
           ->request();
     }

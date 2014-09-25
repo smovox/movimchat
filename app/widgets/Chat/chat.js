@@ -8,9 +8,7 @@ function scrollAllTalks() {
 
 function scrollTalk(params) {
     var messages = document.getElementById(params);
-    if(messages != null) {
-        messages.scrollTop = messages.scrollHeight;
-    }
+    messages.scrollTop = messages.scrollHeight;
 }
 
 //Loads the Notification sound.
@@ -66,10 +64,13 @@ function showPaused(jid) {
     paused.style.display = 'block';
 }
 
-function notify(params) {
+function notify() {
     if(document_focus == false) {
         movim_title_inc();
-        movim_desktop_notification(params[0], params[1], params[2]);
+        //play the notif sound
+        /*chatSoundNotif.pause();
+        chatSoundNotif.currentTime= 0;
+        chatSoundNotif.play();*/
     }
 
 }
@@ -89,22 +90,12 @@ function sendMessage(n, jid)
     var text = n.value;
     
     n.value = "";
+    
     n.focus();
     
     // We escape the text to prevent XML errors
     return encodeURIComponent(text);
 
-}
-
-function sendEncryptedMessage(n, jid)
-{
-    var text = JSON.parse(sjcl.encrypt(n.dataset.publickey,n.value)).iv;
-
-    n.value = "";
-    n.focus();
-    
-    // We escape the text to prevent XML errors
-    return encodeURIComponent(text);
 }
 
 function disableSound(){

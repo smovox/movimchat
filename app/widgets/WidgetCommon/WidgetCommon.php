@@ -13,29 +13,14 @@
  * Copyright (C)2010 MOVIM Project
  *
  * See COPYING for licensing information.
- *
  */
-
-use \Rain\Tpl;
-use \Michelf\Markdown;
-
-use Moxl\Xec\Action\Pubsub\PostPublish;
-use Moxl\Xec\Action\Pubsub\PostDelete;
-use Moxl\Xec\Action\Microblog\CommentPublish;
-use Moxl\Xec\Action\Microblog\CommentsGet;
 
 class WidgetCommon extends WidgetBase {
     private function loadTemplate() {
-        $config = array(
-            'tpl_dir'       => APP_PATH.'widgets/WidgetCommon/',
-            'cache_dir'     => CACHE_PATH,
-            'tpl_ext'       => 'tpl',
-            'auto_escape'   => false
-        );
-
-        // We load the template engine
-        $view = new Tpl;
-        $view->objectConfigure($config);
+        $view = new RainTPL;
+        $view->configure('tpl_dir', APP_PATH.'widgets/WidgetCommon/'); 
+        $view->configure('cache_dir',    CACHE_PATH);
+        $view->configure('tpl_ext',      'tpl'); 
         $view->assign('c', $this);
         
         return $view;
@@ -47,13 +32,11 @@ class WidgetCommon extends WidgetBase {
         $tags = $toolbox = $place = $recycle = '';
 
         if($post->title)
-            $title = $post->title;
-            
-        $spoiler = false;
-            
-        if(current(explode('.', $post->jid)) == 'nsfw')
-            $spoiler = ' movim_toggle_class(this, \'show\')';
-            
+            $title = '
+                <span>
+                    '.$post->title.'
+                </span><br />';
+                
         if($this->user->getLogin() == $post->aid) {
             $class = 'me ';
 
@@ -65,14 +48,9 @@ class WidgetCommon extends WidgetBase {
                 $flagcolor='orange';
                 $access .= 'protect orange';
             }
-
+                
             $avatar = $post->getContact()->getPhoto('m');
-        } elseif(isset($post->aid)) {
-            $avatar = $post->getContact()->getPhoto('m', $post->aid);
-        // A little hack which display a colored avatar for the Groups
-        } elseif(!filter_var($post->jid, FILTER_VALIDATE_EMAIL) && $post->node != '') {
-            $avatar = $post->getContact()->getPhoto('m', $post->node);
-        } else
+        } else 
             $avatar = $post->getContact()->getPhoto('m');
             
         if(!filter_var($post->jid, FILTER_VALIDATE_EMAIL) && $post->node != '')
@@ -92,7 +70,7 @@ class WidgetCommon extends WidgetBase {
                     <a 
                         target="_blank" 
                         href="http://www.openstreetmap.org/?lat='.$post->lat.'&lon='.$post->lon.'&zoom=10"
-                    >'.__('post.place').'</a>
+                    >'.t('Place').'</a>
                 </span>';
 
         if(filter_var($post->jid, FILTER_VALIDATE_EMAIL) && $post->jid != '')
@@ -119,7 +97,7 @@ class WidgetCommon extends WidgetBase {
                 
         if(isset($enc) && $enc != '') {
             $enc = '
-                <div class="enclosures">'.
+                <div class="enclosure">'.
                     $enc.
                 '
                     <div class="clear"></div>
@@ -129,9 +107,7 @@ class WidgetCommon extends WidgetBase {
 
         $author = $this->prepareAuthor($post);
 
-        $content = $post->contentcleaned;
-        if(!isset($content))
-            $content = prepareString(html_entity_decode($post->content));
+        $content = prepareString(html_entity_decode($post->content));
         
         if($post->node == 'urn:xmpp:microblog:0')
             $comments = $this->printComments($post, $comments, $public);
@@ -146,7 +122,6 @@ class WidgetCommon extends WidgetBase {
         $view->assign('id',         $post->nodeid);
         $view->assign('class',      $class);
         $view->assign('access',     $access);
-        $view->assign('spoiler',    $spoiler);
         $view->assign('flagtitle',  getFlagTitle($flagcolor));
         if(filter_var($post->jid, FILTER_VALIDATE_EMAIL))
             $view->assign('friend',     Route::urlize('friend', $post->jid));
@@ -176,7 +151,7 @@ class WidgetCommon extends WidgetBase {
     }
     
     private function printTags($tags) {
-        $html = '';
+        $html = '<br />';
         
         $tags = unserialize($tags);
         foreach($tags as $t)
@@ -190,7 +165,6 @@ class WidgetCommon extends WidgetBase {
         $links = unserialize($links);
 
         foreach($links as $l) {
-            /*
             if(isset($l['rel'])
                 && $l['rel'] == 'enclosure'
                 && $l['type'] != 'text/html') {
@@ -233,49 +207,6 @@ class WidgetCommon extends WidgetBase {
                         </a><br />';
                 }
             }
-            */
-
-            switch($l['rel']) {
-                case 'enclosure' :
-                    if(in_array($l['type'], array('image/jpeg', 'image/png', 'image/jpg'))) {
-                        $enc .= '
-                            <a
-                                href="'.$l['href'].'"
-                                class="enclosure"
-                                type="'.$l['type'].'"
-                                target="_blank"><img
-                                    src="'.$l['href'].'"/>
-                            </a>';
-                    /*} elseif(in_array($l['type'], array('audio/mpeg', 'audio/ogg'))) {
-                        $enc .= '
-                            <audio controls>
-                                <source src="'.$l['href'].'" type="'.$l['type'].'">
-                            </audio> ';
-                    }*/} else {
-                        $enc .= '
-                            <a
-                                href="'.$l['href'].'"
-                                class="enclosure"
-                                type="'.$l['type'].'"
-                                target="_blank">'.$l['href'].'
-                            </a>';
-                    }
-                    break;
-                case 'alternate' :
-                    $url = parse_url($l['href']);
-
-                    if(!isset($url['host']))
-                        $url['host'] = '';
-                    
-                    $enc .= '
-                        <a
-                            href="'.$l['href'].'"
-                            class="alternate"
-                            target="_blank"><img
-                                src="http://g.etfv.co/'.$l['href'].'"/>'.$url['scheme'].'://'.$url['host'].$url['path'].'
-                        </a>';
-                    break;
-            }
         }
 
         return $enc;
@@ -284,15 +215,15 @@ class WidgetCommon extends WidgetBase {
     private function prepareAuthor($post) {
         $html = $content = '';
         if($post->aname != null) {
-            $content .= ' <span>'.__('post.by').'</span> '.$post->aname;
+            $content .= ' <span>'.t('by').'</span> '.$post->aname;
         }
 
         if($post->aemail != null) {
-            $content .= ' <span>'.__('post.email').'</span> '.$post->aemail;
+            $content .= ' <span>'.t('email').'</span> '.$post->aemail;
         }
 
         if($post->aid != null) {
-            $content .= ' <span>'.__('post.jid').'</span> '.$post->aid;
+            $content .= ' <span>'.t('jid').'</span> '.$post->aid;
         }
         
         if($content .= '')
@@ -431,7 +362,7 @@ class WidgetCommon extends WidgetBase {
         } else {
             $html = '';
 
-            $pd = new \Modl\PostnDAO();
+            $pd = new \modl\PostnDAO();
             $comments = $pd->getComments($posts);
 
             foreach($posts as $post) {
@@ -483,18 +414,14 @@ class WidgetCommon extends WidgetBase {
         $comcounter = 0;
         
         if($size > 3) {
-            $tmp = '<article
+            $tmp = '<div 
                         class="comment"
                         onclick="
                             com = this.parentNode.querySelectorAll(\'.comment\'); 
                             for(i = 0; i < com.length; i++) { com.item(i).style.display = \'block\';};
                             this.style.display = \'none\';">
-                        <div class="comments">
-                            <a class="getcomments">
-                                <i class="fa fa-history"></i> '.__('post.comments_older').'
-                            </a>
-                        </div>
-                    </article>';
+                        <a class="getcomments icon chat">'.t('Show the older comments').'</a>
+                    </div>';
             $comcounter = $size - 3;
         }
         
@@ -504,20 +431,18 @@ class WidgetCommon extends WidgetBase {
                 $name = $comment->getContact()->getTrueName();
                                 
                 $tmp .= '
-                    <article class="comment" ';
+                    <div class="comment" ';
                 if($comcounter > 0) {
                     $tmp .= 'style="display:none;"';
                     $comcounter--;
                 }
                     
                 $tmp .='>
-                        <header>
-                            <img src="'.$photo.'">
-                            <span><a href="'.Route::urlize('friend', $comment->aid).'">'.$name.'</a></span>
-                            <span class="date">'.prepareDate(strtotime($comment->published)).'</span>
-                        </header>
-                        <section>'.prepareString($comment->content).'</section>
-                    </article>';
+                        <img class="avatar tiny" src="'.$photo.'">
+                        <span><a href="'.Route::urlize('friend', $comment->aid).'">'.$name.'</a></span>
+                        <span class="date">'.prepareDate(strtotime($comment->published)).'</span><br />
+                        <div class="content tiny">'.prepareString($comment->content).'</div>
+                    </div>';
             }
         }
         return $tmp;
@@ -526,8 +451,9 @@ class WidgetCommon extends WidgetBase {
     protected function prepareSubmitForm($server = '', $node = '') {  
         $view = $this->loadTemplate();
                 
-        $view->assign('toggle_position', $this->genCallAjax('ajaxShowPosition', "poss"));
-        $view->assign('gallery', $this->prepareGallery());
+        $view->assign('toggle_position', $this->genCallAjax('ajaxShowPosition', "'poss'"));
+        
+        $view->assign('gallery', $this->user->getDir());
         
         $view->assign(
             'publish_item', 
@@ -547,27 +473,11 @@ class WidgetCommon extends WidgetBase {
                 
         return $html;
     }
-
-    private function prepareGallery() {
-        $arr = array();
-        $p = new \Picture;
-
-        foreach($this->user->getDir() as $pic) {
-            array_push($arr,
-                array(
-                    'thumb' => $p->get($this->user->userdir.$pic, 300),
-                    'uri'   => $p->get($this->user->userdir.$pic)
-                    )
-                );
-        }
-
-        return $arr;
-    }
     
     function ajaxShowPosition($pos)
     {
         list($lat,$lon) = explode(',', $pos);    
-
+        
         $pos = json_decode(
                     file_get_contents('http://nominatim.openstreetmap.org/reverse?format=json&lat='.$lat.'&lon='.$lon.'&zoom=27&addressdetails=1')
                 );
@@ -579,10 +489,10 @@ class WidgetCommon extends WidgetBase {
     function ajaxPostPreview($content)
     {
         if($content != '') {
-            $content = Markdown::defaultTransform($content);
+            $content = Michelf\Markdown::defaultTransform($content);
             RPC::call('movim_fill', 'postpreviewcontent' , $content);
         } else
-            RPC::call('movim_fill', 'postpreviewcontent' , __('post.empty'));
+            RPC::call('movim_fill', 'postpreviewcontent' , t('No content'));
 
         RPC::commit();
     }
@@ -590,54 +500,47 @@ class WidgetCommon extends WidgetBase {
     function ajaxPublishItem($server, $node, $form)
     {
         $content = $form['content'];
-        $title   = $form['title'];
 
-        $geo = false;
-
-        if(isset($form['latlonpos']) && $form['latlonpos'] != '') {
-            list($lat,$lon) = explode(',', $form['latlonpos']);
-            
-            $pos = json_decode(
-                        file_get_contents('http://nominatim.openstreetmap.org/reverse?format=json&lat='.$lat.'&lon='.$lon.'&zoom=27&addressdetails=1')
-                    );
-                    
-            $geo = array(
-                'latitude'      => (string)$pos->lat,
-                'longitude'     => (string)$pos->lon,
-                'altitude'      => (string)$pos->alt,
-                'country'       => (string)$pos->address->country,
-                'countrycode'   => (string)$pos->address->country_code,
-                'region'        => (string)$pos->address->county,
-                'postalcode'    => (string)$pos->address->postcode,
-                'locality'      => (string)$pos->address->city,
-                'street'        => (string)$pos->address->path,
-                'building'      => (string)$pos->address->building,
-                'text'          => (string)$pos->display_name,
-                'uri'           => ''//'http://www.openstreetmap.org/'.urlencode('?lat='.(string)$pos->lat.'&lon='.(string)$pos->lon.'&zoom=10')
+        list($lat,$lon) = explode(',', $form['latlonpos']);
+        
+        $pos = json_decode(
+                    file_get_contents('http://nominatim.openstreetmap.org/reverse?format=json&lat='.$lat.'&lon='.$lon.'&zoom=27&addressdetails=1')
                 );
-        }
-
-        if($content != '') {
-            $content = Markdown::defaultTransform($content);
+                
+        $geo = array(
+            'latitude'      => (string)$pos->lat,
+            'longitude'     => (string)$pos->lon,
+            'altitude'      => (string)$pos->alt,
+            'country'       => (string)$pos->address->country,
+            'countrycode'   => (string)$pos->address->country_code,
+            'region'        => (string)$pos->address->county,
+            'postalcode'    => (string)$pos->address->postcode,
+            'locality'      => (string)$pos->address->city,
+            'street'        => (string)$pos->address->path,
+            'building'      => (string)$pos->address->building,
+            'text'          => (string)$pos->display_name,
+            'uri'           => ''//'http://www.openstreetmap.org/'.urlencode('?lat='.(string)$pos->lat.'&lon='.(string)$pos->lon.'&zoom=10')
+            );
             
-            $p = new PostPublish;
+        if($content != '') {
+            $content = Michelf\Markdown::defaultTransform($content);
+
+            $p = new moxl\PubsubPostPublish();
             $p->setFrom($this->user->getLogin())
               ->setTo($server)
               ->setNode($node)
               ->setLocation($geo)
-              ->setTitle($title)
               ->setContentHtml(rawurldecode($content))
               ->enableComments()
               ->request();
         }
-        
     }
     
     function onComment($parent) {        
-        $p = new \Modl\ContactPostn();
+        $p = new \modl\ContactPostn();
         $p->nodeid = $parent;
         
-        $pd = new \Modl\PostnDAO();
+        $pd = new \modl\PostnDAO();
         $comments = $pd->getComments($p);
 
         $html = $this->prepareComments($comments);
@@ -648,8 +551,8 @@ class WidgetCommon extends WidgetBase {
         $html = '
             <div class="comment">
                 <a 
-                    class="getcomments" >
-                    <i class="fa fa-comments-o"></i> '.__('post.no_comments').
+                    class="getcomments icon chat" >'.
+                    t('No comments').
                 '</a>
             </div>';
         RPC::call('movim_fill', $parent.'comments', $html);
@@ -659,15 +562,15 @@ class WidgetCommon extends WidgetBase {
         $html = '
             <div class="comment">
                 <a 
-                    class="getcomments" >
-                    <i class="fa fa-comments-o"></i> '.__('post.no_comments_stream').
+                    class="getcomments icon chat" >'.
+                    t('No comments stream').
                 '</a>
             </div>';
         RPC::call('movim_fill', $parent.'comments', $html);
     }
     
     function ajaxGetComments($jid, $id) {
-        $c = new CommentsGet;
+        $c = new moxl\MicroblogCommentsGet();
         $c->setTo($jid)
           ->setId($id)
           ->request();
@@ -675,7 +578,7 @@ class WidgetCommon extends WidgetBase {
     
     function ajaxPublishComment($to, $id, $content) {
         if($content != '') {
-            $p = new CommentPublish;
+            $p = new moxl\MicroblogCommentPublish();
             $p->setTo($to)
               ->setFrom($this->user->getLogin())
               ->setParentId($id)
@@ -685,7 +588,7 @@ class WidgetCommon extends WidgetBase {
     }
     
     function ajaxDeletePost($to, $node, $id) {
-        $p = new PostDelete;
+        $p = new moxl\PubsubPostDelete();
         $p->setTo($to)
           ->setNode($node)
           ->setId($id)
@@ -693,14 +596,14 @@ class WidgetCommon extends WidgetBase {
     }
     
     function ajaxPrivacyPost($nodeid, $privacy) {
-        $pd = new \Modl\PrivacyDAO();
+        $pd = new \modl\PrivacyDAO();
         
         $p = $pd->get($nodeid);
 
         if($privacy == 'orange') {
-            \Modl\Privacy::set($nodeid, 0);
+            \modl\Privacy::set($nodeid, 0);
         } elseif($privacy == 'black') {
-            \Modl\Privacy::set($nodeid, 1);
+            \modl\Privacy::set($nodeid, 1);
         }
 
         RPC::call('movim_change_class', $nodeid , 'protect '.$privacy, getFlagTitle($privacy));

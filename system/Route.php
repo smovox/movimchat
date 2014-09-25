@@ -1,13 +1,11 @@
 <?php 
-class Route extends \BaseController {
+class Route extends \ControllerBase {
     public $_routes;
-    private $_page;
     
     public function __construct() {
         $this->_routes = array(
-                'account'       => false,
-                'accountnext'   => array('s', 'err'),
-                'visio'         => false,
+                'account'       => array('err'),
+                'chatpop'       => false,
                 'main'          => false,
                 'news'          => false,
                 'loading'       => false,
@@ -15,13 +13,11 @@ class Route extends \BaseController {
                 'explore'       => false,
                 'discover'      => false,
                 'profile'       => false,
-                'infos'         => false,
                 'media'         => array('f'),
                 'conf'          => false,
                 'help'          => false,
                 'about'         => false,
                 'login'         => array('err'),
-                'pods'          => false,
                 'disconnect'    => array('err'),
                 'friend'        => array('f'),
                 'blog'          => array('f', 'n'),
@@ -30,18 +26,38 @@ class Route extends \BaseController {
                 'node'          => array('s', 'n'),
                 'server'        => array('s'),
             );
+
+        if(isset($_SERVER['HTTP_MOD_REWRITE']) && $_SERVER['HTTP_MOD_REWRITE']) {
+            $q = $this->fetch_get('query');
+            //load data in $_GET variable
+            if (!$this->find($q)) {
+                $this->error404();
+                exit;
+            }
+        } else {
+            $q = $this->fetch_get('q');
+            if(empty($q))
+                $_GET['q'] = 'main';
+        }
     }
     
-    public function find() {
-        if(isset($_SERVER['HTTP_MOD_REWRITE']) && $_SERVER['HTTP_MOD_REWRITE']) {
-            $request = explode('/', $this->fetchGet('query'));
-            $this->_page = $request[0];
-            array_shift($request);
-
-            if(isset($this->_routes[$this->_page]))
-                $route = $this->_routes[$this->_page];
+    public function find($q) {
+        // We decompose the URL
+        $request = explode('/', $q);
+                
+        if(empty($q)) {
+            $_GET['q'] = 'main';
+            return true;
+        } elseif (isset($this->_routes[$request[0]])) {
+            // And we search a pattern for the current page
+            $route = $this->_routes[$request[0]];
             
-            if(count($request) && isset($route)) {
+            
+            $_GET['q'] = $request[0];
+            array_shift($request);
+            // If we find it we see if it's a simple page (with no GET)
+            //check if something else to get...
+            if(count($request) ) {
                 $i = 0;
                 foreach($route as $key) {
                     if (isset($request[$i])) {
@@ -50,35 +66,22 @@ class Route extends \BaseController {
                     $i++;
                 }
             }
-        } else {
-            $this->_page = $this->fetchGet('q');
-        }
-
-        if(empty($this->_page))
-            $this->_page = 'main';
-
-        if(!isset($this->_routes[$this->_page]))
-            $this->_page = 'notfound';
-
-        return $this->_page;
+            return true;
+        } else
+            return false;
     }
     
-    public static function urlize($page, $params = false, $tab = false) {
+    public static function urlize($page, $params = false) {
         $r = new Route();
         $routes = $r->_routes;
-
-        if($page === 'root')
-            return BASE_URI;
         
         if(isset($routes[$page])) {        
-            if($params != false && count($routes[$page]) != count($params)) {
-                throw new Exception(__('error.route', $page));
-            } else {
-                if($tab != false)
-                    $tab = '#'.$tab;
+            if($params != false && count($routes[$page]) != count($params)) 
+                \system\Logs\Logger::log(t('Route error, please set all the parameters for the page %s', $page));
+            else {
                 //We construct a classic URL if the rewriting is disabled
                 if(!isset($_SERVER['HTTP_MOD_REWRITE']) || !$_SERVER['HTTP_MOD_REWRITE']) {
-                    $uri = BASE_URI . '?q='.$page;
+                    $uri = BASE_URI.'?q='.$page;
                     
                     if($params != false && is_array($params)) {
                         $i = 0;
@@ -92,17 +95,16 @@ class Route extends \BaseController {
                 } 
                 // Here we got a beautiful rewriten URL !
                 else {
-                    $uri = BASE_URI . $page;
+                    $uri = BASE_URI.$page;
                     if($params != false && is_array($params))
                         foreach($params as $value)
                             $uri .= '/'.$value;
                     elseif($params != false)
                         $uri .= '/'.$params;
                 }
-                return $uri.$tab;
+                return $uri;
             }
-        } else {
-            throw new Exception(__('Route not set for the page %s', $page));
-        }
+        } else
+            \system\Logs\Logger::log(t('Route not set for the page %s', $page));
     }
 }

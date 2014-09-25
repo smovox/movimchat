@@ -1,27 +1,34 @@
-#profile_widget {
-    background-color: rgba(20, 20, 20, 0.5);
+#profile {
+    background-color: #272727;
+    margin: -1em;
+    padding: 1em;
     line-height: 1.5em;
+    padding-bottom: 0em;
 }
 
-#profile_widget h1 {
+#profile h1 {
     color: white;
     line-height: 1.5em;
+    padding: 0px;
+    margin: 0.5em 0em;
 }
 
-#profile_widget a.avatar {
-    width: 100%;
-    padding-bottom: 100%;
+#profile img {
+    width: 200px;
+    height: 200px;
     display: block;
-    background-size: 100%;
+    margin: -1em;
+    margin-bottom: 1em;
 }
 
-#profile_widget .textbubble {
+#profile .textbubble {
+    margin: 0em -1em;
     margin-top: 1em;
-    background-color: rgba(20, 20, 20, 0.7);
+    background-color: #171717;
     padding: 1em;
 }
 
-#profile_widget .textbubble textarea {
+#profile .textbubble textarea {
     background-color: transparent;
     border: 1px solid transparent;
     border-bottom: 1px solid #333;
@@ -33,10 +40,10 @@
     padding: 0px;
 }
 
-#profile_widget .textbubble textarea:hover {
+#profile .textbubble textarea:hover {
     border-color: white;
 }
 
-#profile_widget textarea#status {
+#profile textarea#status {
     overflow: hidden;
 }
